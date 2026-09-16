@@ -36,9 +36,6 @@ public class TROracle : Oracle {
             CreateMarble(orbitObj, new Vector2(500f, 300f) + Custom.RNV() * 20f, 0, 35f, rnd.Next(3));
         for (int index = 0; index < 2; ++index)
             CreateMarble(orbitObj, new Vector2(500f, 300f) + Custom.RNV() * 20f, 1, 100f, index == 1 ? 2 : 0);
-        CreateMarble(null, new Vector2(600f, 550f), 0, 0.0f, 1);
-        CreateMarble(null, new Vector2(620f, 550f), 0, 0.0f, 2);
-        CreateMarble(null, new Vector2(640f, 530f), 0, 0.0f, 0);
         for (int i = 0; i < 21; i++) {
             int x = i % 7;
             int y = i / 7;
@@ -48,14 +45,16 @@ public class TROracle : Oracle {
         var orbitPearl = marbles.Last();
         for (int i = 0; i < 3; i++) {
             CreateMarble(orbitPearl, new Vector2(680, 350) + Custom.RNV() * 20f, 10, 30f, rnd.Next(3));
-            if (i > 0)
-                CreateMarble(marbles.Last(), new Vector2(680, 350) + Custom.RNV() * 20f, 1, 15f, rnd.Next(3));
         }
         for (int i = 0; i < 5; i++) {
             CreateMarble(null, new Vector2(260, 590 - i * 50), 0, 0f, rnd.Next(3));
             CreateMarble(marbles.Last(), new Vector2(260, 590 - i * 50) + Custom.RNV()*20, 0, 3f, rnd.Next(3));
         }
         CreateMarble(null, new Vector2(380, 510), 0, 0.0f, 2);
+        for (int i = 0; i < 2; i++)
+            CreateMarble(marbles.Last(), new Vector2(380, 510) + Custom.RNV() * 20f, 1, 15f, rnd.Next(3));
+        for (int i = 0; i < 10; i++)
+            CreateMarble(rnd.Next(4) == 0 ? marbles.Last() : null, new Vector2(640, 510) + Custom.DegToVec(rnd.Next(360))*((float)rnd.NextDouble()*90f + 30f), 0, 0.0f, rnd.Next(3));
     }
     
     public override void InitiateGraphicsModule() {
@@ -117,7 +116,7 @@ public class TROracleBehavior : SSOracleBehavior {
         oracle.CreateMarble(orbitObj, pos, circle, dist, color);
         PebblesPearl pearl = oracle.marbles.Last();
         //if (label.HasValue) pearl.label = new GlyphLabel(pearl.abstractPhysicalObject.pos.Vec2(), [label.Value] );
-        Plugin.Logger.LogDebug("New custom pearl:"+pearl.abstractPhysicalObject.ID);
+        if (debug) Plugin.Logger.LogDebug("New custom pearl:"+pearl.abstractPhysicalObject.ID);
         return pearl;
     }
 
@@ -194,8 +193,7 @@ public class TROracleBehavior : SSOracleBehavior {
                         investigateMarble = selectable[Random.Range(0, selectable.Length)];
                         //Bang(investigateMarble.firstChunk);
                         SetLabel(GlyphLabel.RandomString(1, 10, investigateMarble.marbleIndex, false));
-                        Plugin.Logger.LogDebug("Picked new pearl to look at: " +
-                                               investigateMarble.abstractPhysicalObject.ID);
+                        if (debug) Plugin.Logger.LogDebug("Picked new pearl to look at: " + investigateMarble.abstractPhysicalObject.ID);
                         investigateAngle =
                             Custom.VecToDeg(investigateMarble.firstChunk.pos -
                                             oracle.firstChunk.pos); //Random.value * 360f;
