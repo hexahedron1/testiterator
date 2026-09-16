@@ -3,4 +3,5 @@ RandomItemDensity: 0
 RandomItemSpearChance: 0
 Palette: 26
 Effects: SSSwarmers-0-42-68, ProjectedScanLines-0-30-30, SuperStructureProjector-0-40-40, SSMusic-0.6086956-245-49, 
-PlacedObjects: LightSource><224.9767><624.0514><1~Environment~541~-538~-132~-204.3974~0~0~None~0~0, LightSource><226.6104><82.08325><1~Environment~535~541~50~86.60254~0~0~None~0~0, LightSource><759.6168><82.6008><1~Environment~-559~575~50~86.60254~0~0~None~0~0, LightSource><757.8122><620.6812><1~Environment~-581~-575~30~-167.3975~0~0~None~0~0, LightSource><490.5699><350.3126><1~Environment~-631~15~28~130.6025~1~0~None~0~0, 
+PlacedObjects: LightSource><224.9767><624.0514><1~Environment~541~-538~-132~-204.3974~1~0~None~0~0, LightSource><226.6104><82.08325><1~Environment~535~541~-168~122.6025~1~0~None~0~0, LightSource><759.6168><82.6008><1~Environment~-559~575~50~86.60254~1~0~None~0~0, LightSource><757.8122><620.6812><1~Environment~-581~-575~30~-167.3975~1~0~None~0~0, LightSource><490.5699><350.3126><1~Environment~683~-421~28~130.6025~0~0~None~0~0, 
+FadePalette: 10, 0

@@ -156,6 +156,7 @@ public class TROracleBehavior : SSOracleBehavior {
         public static readonly TROracleAction FirstEncounter = new("FirstEncounter", true);
         public static readonly TROracleAction InspectObject = new("InspectObject", true);
         public static readonly TROracleAction SMThrowOut = new("SMThrowOut", true);
+        public static readonly TROracleAction Welcome = new("Welcome", true);
     }
 
     private new TROracleAction action;
@@ -184,8 +185,10 @@ public class TROracleBehavior : SSOracleBehavior {
                 if (movementBehavior == MovementBehavior.Idle) {
                     invstAngSpeed = 1f;
                     if (investigateMarble == null && oracle.marbles.Count > 0) {
-                        if (Random.Range(0, 10) == 0) {
+                        if (actionProgress > (room.world.rainCycle.AmountLeft > 0 ? 2400 : 120) && Random.Range(0, room.world.rainCycle.AmountLeft > 0 ? 150 : 10) == 0) {
                             movementBehavior = MovementBehavior.Meditate;
+                            SetNewDestination(new Vector2(480, 350));
+                            actionProgress = 0;
                         }
                         var selectable = (from x in oracle.marbles where x.orbitObj == null select x).ToArray();
                         investigateMarble = selectable[Random.Range(0, selectable.Length)];
@@ -202,15 +205,10 @@ public class TROracleBehavior : SSOracleBehavior {
                     if (investigateMarble != null) {
                         lookPoint = investigateMarble.firstChunk.pos;
                         floatyMovement = true;
-
                         if (Mathf.Approximately(pathProgression, 1f) && Random.value < 0.05) investigateMarble = null;
                     }
 
-                    currentGetTo = Custom.Bezier(lastPos, ClampVectorInRoom(lastPos + lastPosHandle), nextPos,
-                        ClampVectorInRoom(nextPos + nextPosHandle), pathProgression);
-                    pathProgression = Mathf.Min(1f,
-                        pathProgression + 1f / Mathf.Lerp((float)(40.0 + pathProgression * 80.0),
-                            Vector2.Distance(lastPos, nextPos) / 5f, 0.5f));
+                    
                     if (debug) {
                         debugLabel_currentGetTo.pos = currentGetTo;
                         debugLabel_lastPos.pos = lastPos;
@@ -220,11 +218,31 @@ public class TROracleBehavior : SSOracleBehavior {
                             testLabel.visibleGlyphs++;
                             oracle.room.PlaySound(SoundID.SS_AI_Text);
                         }
-                    } //Move();
+                    } 
                 } else if (movementBehavior == MovementBehavior.Meditate) {
-                    
+                    lookPoint = oracle.bodyChunks[0].pos;
+                    currentGetTo = new Vector2(480, 350);
+                    if (actionProgress > (room.world.rainCycle.AmountLeft > 0 ? 800 : 1600) && Random.Range(0, room.world.rainCycle.AmountLeft > 0 ? 150 : 1200) == 0) {
+                        movementBehavior = MovementBehavior.Idle;
+                        actionProgress = 0;
+                    }
+                    if (gotHitByPlayer) {
+                        gotHitByPlayer = false;
+                        movementBehavior = MovementBehavior.Idle; // placeholder
+                        actionProgress = 0;
+                    }
                 }
+                actionProgress++;
             }
+
+            if (movementBehavior != MovementBehavior.Meditate) {
+                currentGetTo = Custom.Bezier(lastPos, ClampVectorInRoom(lastPos + lastPosHandle), nextPos,
+                    ClampVectorInRoom(nextPos + nextPosHandle), pathProgression);
+                pathProgression = Mathf.Min(1f,
+                    pathProgression + 1f / Mathf.Lerp((float)(40.0 + pathProgression * 80.0),
+                        Vector2.Distance(lastPos, nextPos) / 5f, 0.5f));
+            }
+
             if (debug) {
                 if (timeSinceLastError < 20) {
                     if (tikk % 10 == 0) {
@@ -237,6 +255,7 @@ public class TROracleBehavior : SSOracleBehavior {
                 if (IsHeld(errorTestPearl) && !errorPearlWasHeld) throw new Exception("THIS IS A TEST EXCEPTION");
                 errorPearlWasHeld = IsHeld(errorTestPearl);
             }
+            oracle.arm.Update();
         } catch (Exception e) {
             timeSinceLastError = 0;
             Plugin.Logger.LogError("ERROR");
@@ -285,7 +304,7 @@ public class TROracleGraphics : OracleGraphics {
         totalSprites -= armBase.totalSprites;
         killSprite = totalSprites;
         totalSprites++;
-        armBase.firstSprite = firstArmBaseSprite = this.totalSprites;
+        armBase.firstSprite = firstArmBaseSprite = totalSprites;
         totalSprites += armBase.totalSprites;
     }
     
@@ -347,7 +366,7 @@ public class TROracleGraphics : OracleGraphics {
         Vector2 camPos)
     {
         base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
-        if (!(this.oracle is TROracle oracle))
+        if (this.oracle is not TROracle oracle)
             return;
         Room room = oracle.room;
         if (room == null || oracle.slatedForDeletetion || room != rCam.room || dispose || !(oracle.oracleBehavior is TROracleBehavior oracleBehavior))
@@ -375,11 +394,11 @@ public class TROracleGraphics : OracleGraphics {
         }
         else
             fsprite.isVisible = false;
-        float t = Mathf.Lerp(this.lastEyesOpen, this.eyesOpen, timeStacker);
+        float t = Mathf.Lerp(lastEyesOpen, eyesOpen, timeStacker);
         GenericBodyPart[] hands = this.hands;
         for (int index1 = 0; index1 < hands.Length; ++index1)
         {
-            sprites[this.EyeSprite(index1)].scaleY = Mathf.Lerp(1f, 2.5f, t);
+            sprites[EyeSprite(index1)].scaleY = Mathf.Lerp(1f, 2.5f, t);
             float num1 = index1 == 1 ? -1f : 1f;
             GenericBodyPart genericBodyPart = hands[index1];
             Vector2 vector2_3 = Vector2.Lerp(genericBodyPart.lastPos, genericBodyPart.pos, timeStacker);
@@ -393,16 +412,16 @@ public class TROracleGraphics : OracleGraphics {
                 Vector2 v2 = Custom.DirVec(vector2_5, vector2_6);
                 Vector2 vector2_7 = Custom.PerpendicularVector(v2) * (index1 == 0 ? -1f : 1f);
                 float num2 = Vector2.Distance(vector2_5, vector2_6);
-                TriangleMesh triangleMesh = sprites[this.HandSprite(index1, 1)] as TriangleMesh;
+                TriangleMesh triangleMesh = sprites[HandSprite(index1, 1)] as TriangleMesh;
                 triangleMesh.MoveVertice(index2 * 4, vector2_6 - v2 * num2 * 0.3f - vector2_7 * 4f - camPos);
                 triangleMesh.MoveVertice(index2 * 4 + 1, vector2_6 - v2 * num2 * 0.3f + vector2_7 * 4f - camPos);
                 triangleMesh.MoveVertice(index2 * 4 + 2, vector2_6 - vector2_7 * 4f - camPos);
                 triangleMesh.MoveVertice(index2 * 4 + 3, vector2_6 + vector2_7 * 4f - camPos);
                 vector2_5 = vector2_6;
             }
-            GenericBodyPart foot = this.feet[index1];
+            GenericBodyPart foot = feet[index1];
             Vector2 vector2_8 = Vector2.Lerp(foot.lastPos, foot.pos, timeStacker);
-            Vector2 b = Vector2.Lerp(this.knees[index1, 1], this.knees[index1, 0], timeStacker);
+            Vector2 b = Vector2.Lerp(knees[index1, 1], knees[index1, 0], timeStacker);
             Vector2 cB2 = Vector2.Lerp(vector2_8, b, 0.9f);
             Vector2 cA2 = Vector2.Lerp(vector2_1, b, 0.9f);
             Vector2 vector2_9 = vector2_1 - vector2_2 * 2f * num1;
@@ -433,5 +452,64 @@ public class TROracleArm : Oracle.OracleArm {
         cornerPositions[1] = room.MiddleOfTile(38, 31);
         cornerPositions[2] = room.MiddleOfTile(38, 3);
         cornerPositions[3] = room.MiddleOfTile(10, 3);
+    }
+
+    public new void Update() {
+        if (oracle.Consious) {
+            float num = 1f;
+            if (ModManager.MSC)
+                num = oracle.dazed <= 240.0 ? (float) (1.0 - oracle.dazed / 240.0) : 0.0f; 
+            foreach (var t in oracle.bodyChunks)
+                t.vel *= 0.4f;
+            oracle.bodyChunks[0].vel += Vector2.ClampMagnitude(oracle.oracleBehavior.OracleGetToPos - oracle.bodyChunks[0].pos, 100f) / 100f * (6.2f * num);
+            for (int index = 1; index < oracle.bodyChunks.Length; ++index)
+                oracle.bodyChunks[index].vel += Vector2.ClampMagnitude(oracle.oracleBehavior.OracleGetToPos - oracle.oracleBehavior.GetToDir * oracle.bodyChunkConnections[0].distance - oracle.bodyChunks[0].pos, 100f) / 100f * (3.2f * num);
+        }
+        Vector2 baseGetToPos = oracle.oracleBehavior.BaseGetToPos;
+        Vector2 vector2 = new Vector2(Mathf.Clamp(baseGetToPos.x, cornerPositions[0].x, cornerPositions[1].x), cornerPositions[0].y);
+        float num1 = Vector2.Distance(vector2, baseGetToPos);
+        float num2 = Mathf.InverseLerp(cornerPositions[0].x, cornerPositions[1].x, baseGetToPos.x);
+        for (int index = 1; index < 4; ++index) {
+            Vector2 a = index % 2 != 0 
+                ? new Vector2(cornerPositions[index].x, Mathf.Clamp(baseGetToPos.y, cornerPositions[2].y, cornerPositions[0].y))
+                : new Vector2(Mathf.Clamp(baseGetToPos.x, cornerPositions[0].x, cornerPositions[1].x), cornerPositions[index].y);
+            float num3 = Vector2.Distance(a, baseGetToPos);
+            if (num3 < num1) {
+                vector2 = a;
+                num1 = num3;
+                switch (index) {
+                    case 1:
+                        num2 = index + Mathf.InverseLerp(cornerPositions[0].y, cornerPositions[2].y, baseGetToPos.y);
+                        continue;
+                    case 2:
+                        num2 = index + Mathf.InverseLerp(cornerPositions[1].x, cornerPositions[0].x, baseGetToPos.x);
+                        continue;
+                    case 3:
+                        num2 = index + Mathf.InverseLerp(cornerPositions[2].y, cornerPositions[0].y, baseGetToPos.y);
+                        continue;
+                    default:
+                        continue;
+                }
+            }
+        }
+        baseMoving = Vector2.Distance(BasePos(1f), vector2) > (baseMoving ? 50.0 : 350.0) && oracle.oracleBehavior.consistentBasePosCounter > 30;
+        lastFramePos = framePos;
+        if (baseMoving) {
+            framePos = Mathf.MoveTowardsAngle(framePos * 90f, num2 * 90f, 1f) / 90f;
+            if (baseMoveSoundLoop != null) {
+                baseMoveSoundLoop.volume = Mathf.Min(baseMoveSoundLoop.volume + 0.1f, 1f);
+                baseMoveSoundLoop.pitch = Mathf.Min(baseMoveSoundLoop.pitch + 0.025f, 1f);
+            }
+        }
+        else if (baseMoveSoundLoop != null) {
+            baseMoveSoundLoop.volume = Mathf.Max(baseMoveSoundLoop.volume - 0.1f, 0.0f);
+            baseMoveSoundLoop.pitch = Mathf.Max(baseMoveSoundLoop.pitch - 0.025f, 0.5f);
+        }
+        if (baseMoveSoundLoop != null) {
+            baseMoveSoundLoop.pos = BasePos(1f);
+            baseMoveSoundLoop.Update();
+            if (ModManager.MSC)
+                baseMoveSoundLoop.volume *= 1f - oracle.noiseSuppress;
+        }
     }
 }
