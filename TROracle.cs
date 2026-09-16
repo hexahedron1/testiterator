@@ -24,8 +24,10 @@ public class TROracle : Oracle {
             break;
         }
         arm = new TROracleArm(this);
-        ((TROracleBehavior)oracleBehavior).currentGetTo = new Vector2(480, 350);
+        behavior.SetNewDestination(new Vector2(480, 350));
     }
+
+    private TROracleBehavior behavior => (TROracleBehavior)oracleBehavior;
 
     private new void SetUpMarbles() {
         PhysicalObject orbitObj = this;
@@ -65,12 +67,12 @@ public class TROracle : Oracle {
     public override void HitByWeapon(Weapon weapon) {
         if (!Consious)
             return;
-        ((TROracleBehavior)oracleBehavior).ReactToHitWeapon();
+        behavior.ReactToHitWeapon();
     }
 
     public override void Collide(PhysicalObject otherObject, int myChunk, int otherChunk) {
         base.Collide(otherObject, myChunk, otherChunk);
-        if (otherObject is Player) ((TROracleBehavior)oracleBehavior).gotHitByPlayer = true;
+        if (otherObject is Player) behavior.gotHitByPlayer = true;
     }
 }
 
@@ -182,6 +184,9 @@ public class TROracleBehavior : SSOracleBehavior {
                 if (movementBehavior == MovementBehavior.Idle) {
                     invstAngSpeed = 1f;
                     if (investigateMarble == null && oracle.marbles.Count > 0) {
+                        if (Random.Range(0, 10) == 0) {
+                            movementBehavior = MovementBehavior.Meditate;
+                        }
                         var selectable = (from x in oracle.marbles where x.orbitObj == null select x).ToArray();
                         investigateMarble = selectable[Random.Range(0, selectable.Length)];
                         //Bang(investigateMarble.firstChunk);
@@ -216,6 +221,8 @@ public class TROracleBehavior : SSOracleBehavior {
                             oracle.room.PlaySound(SoundID.SS_AI_Text);
                         }
                     } //Move();
+                } else if (movementBehavior == MovementBehavior.Meditate) {
+                    
                 }
             }
             if (debug) {
