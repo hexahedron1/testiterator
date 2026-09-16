@@ -1,0 +1,22 @@
+DangerType: None
+CeilingDrips: 0.5
+RainIntensity: 0
+RumbleIntensity: 0
+WaveSpeed: 0.75
+WaveLength: 0.5
+WaveAmplitude: 0
+SecondWaveLength: 0.1666667
+SecondWaveAmplitude: 0
+Clouds: 0
+Grime: 0
+RandomItemDensity: 0
+BkgDroneVolume: 0.3
+BkgDroneNoThreatVolume: 1
+RandomItemDensity: 0.5
+RandomItemSpearChance: 0.2
+WaterReflectionAlpha: 1
+Palette: 44
+EffectColorA: 0
+EffectColorB: 0
+Effects: ZeroG-1-58-129, WaterLights-1-20-20,
+AmbientSounds: OMNI><AM_IND-SuperStructure.ogg><709.1579><391.5725><0.3><0.9021739, OMNI><SO_SFX-DeepLake.ogg><687.6986><273.2267><0.4021739><1, OMNI><SO_SFX-LakeBottom.ogg><652.1144><147.103><0.5><1, 

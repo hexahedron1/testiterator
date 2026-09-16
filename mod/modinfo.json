@@ -1,0 +1,11 @@
+﻿{
+  "id": "hexahedron1.testiterator",
+  "name": "Test iterator",
+  "version": "0.1.27",
+  "authors": "hexahedron1",
+  "description": "Yet another iterator OC blah blah blah you know the drill go eat all the neurons",
+  "tags": [ "Regions" ],
+  "requirements": [ "regionkit", "crs" ],
+  "requirements_names": [ "RegionKit, Custom Regions Support" ],
+  "checksum_override_version": true
+}

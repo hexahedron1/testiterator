@@ -1,0 +1,11 @@
+RainIntensity: 0
+RumbleIntensity: 0.05434782
+WaveSpeed: 0.5
+WaveLength: 1
+WaveAmplitude: 0.0009500193
+SecondWaveLength: 0.1666667
+SecondWaveAmplitude: 0
+Clouds: 0
+Effects: DayNight-1-321-112, 
+PlacedObjects: WallSteamer><1103.159><381.1924><0~100, WallSteamer><1103.124><137.6555><0~100, WallSteamer><1022.875><138.6559><0~100, WallSteamer><1101.786><916.3033><0~100, WallSteamer><1020.697><912.0324><0~100, WallSteamer><634.0656><2395.327><0~100, WallSteamer><555.8892><2393.894><0~100, WallSteamer><943.3164><1778.812><0~100, WallSteamer><780.0985><1524.345><0~100, WallSteamer><1019.13><1529.16><0~100, WallSteamer><1102.7><1530.013><0~100, WallSteamer><590.9651><1513.816><0~100, WallSteamer><590.5476><1725.194><0~100, WallSteamer><367.9854><1727.699><0~100, WallSteamer><226.3972><107.6146><0~100, WallSteamer><448.8778><106.6583><0~100, WallSteamer><671.9059><106.6252><0~100, ExitSymbolHidden><813.5012><187.5594><, Filter><794.135><188.3364><-2~69~-361~251~Rivulet, 
+FadePalette: 15, 0.1413043, 0.1630435, 0.1847826, 0.2065217

@@ -1,0 +1,13 @@
+Template: tr_settingstemplate_wall-inside
+RainIntensity: 0.7173913
+RumbleIntensity: 1
+WaveSpeed: 0.5
+WaveLength: 0.75
+WaveAmplitude: 0.04824432
+SecondWaveLength: 0.1666667
+SecondWaveAmplitude: 0
+Clouds: 0.3695652
+Grime: 0
+Effects: ZeroG-0.1521739-335-117, RainSiren-0.6086956-39-3-songname:Moon_Siren-fadein:1000, Fog-0.3586957-554-368, GreenSparks-0.08695652-464-514, 
+PlacedObjects: SuperStructureFuses><610.4159><471.0685><79~80, 
+FadePalette: 15, 0.4891304

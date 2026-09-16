@@ -1,0 +1,21 @@
+Type: RoofTopView
+OffsetX: 0
+OffsetY: 0
+---------------
+floorLevel: 26
+origin: Null
+rubbleCount: 16
+rubbleStartDepth: 1.5
+rubbleEndDepth: 8
+curveRubbleDepth: 1.5
+atmosphereColor: 293B51
+daySky: Rf_Sky
+duskSky: Rf_DuskSky
+nightSky: Rf_NightSky
+Floor: floor, -91, 26, 1, 12
+Smoke: 0, 562, 7, 2.5, 0.1, 0.8, False
+Smoke: 0, 0, 4.2, 0.2, 0.1, 0, True
+Smoke: 0, 28, 2, 0.5, 0.1, 0, True
+Smoke: 0, 14, 1.2, 0.75, 0.1, 0, True
+DistantBuilding: rf_cityc_dm, -576, 0, 5, 0
+DistantBuilding: rf_cityb_dm, -371, -50, 10, 0

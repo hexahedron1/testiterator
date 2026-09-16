@@ -1,0 +1,7 @@
+Template: tr_settingstemplate_pipes
+RainIntensity: 0
+RumbleIntensity: 0
+Palette: 44
+EffectColorA: 0
+PlacedObjects: WaterCurrent><168.1429><83.11011><-1~795~31.97601~57.9993, LightFixture><220.6964><239.2879><RedLight~17.32051~-10~41, LightFixture><424.2133><667.4466><RedLight~17.32051~-10~51, LightFixture><324.8768><1071.295><RedLight~-435.6795~37~53, LightFixture><628.4349><909.3263><RedLight~-237.6795~-129~98, LightFixture><887.1925><926.554><RedLight~17.32051~-10~60, LightFixture><733.3832><130.1008><RedLight~17.32051~-10~10, LightFixture><541.0549><254.4559><RedLight~142.3205~201~65, WaterCurrent><271.5544><1414.058><1~-1294~85.99215~55.6923, WaterCurrent><243.2609><146.0503><271~1~84.17665~58.13042, WaterCurrent><486.8809><118.1606><1~857~101.0302~57.20197, WaterCurrent><515.4277><946.5635><-167~1~87.94491~59.40188, WaterCurrent><370.0507><919.767><0~496~84.98804~55.78385, WaterCurrent><719.3693><742.4014><160~0~54~99.99989, WaterCurrent><851.9125><715.1333><0~419~60~62.03225, WaterCurrent><877.9951><1102.55><-316~0~60~50.11975, WaterCurrent><589.6217><1127.153><4~-1066~58.00713~58.13529, WaterCurrent><563.0033><90.80002><309~-1~53.99987~60, 
+FadePalette: 0, 0, 0

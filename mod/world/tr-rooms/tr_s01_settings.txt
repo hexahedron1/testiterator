@@ -1,0 +1,8 @@
+Template: tr_settingstemplate_wall-inside
+DangerType: None
+RainIntensity: 0
+RumbleIntensity: 0
+Clouds: 0
+Effects: ZeroG-0.25-20-20, DayNight-0.9021739-309-127, 
+PlacedObjects: SuperStructureFuses><591.2853><431.5531><98~102, ShelterSpawnPoint><467.7216><284.052><, LightSource><470.6934><286.8009><1~Environment~0~100~50~86.60254~0~0~None~0~1, 
+AmbientSounds: SPOT><SO_SFX-DataTrans2.ogg><632.8259><113.3484><0.5><1><639.8259><477.3484><-48.35535><-57.35535><0><0.3065219, 

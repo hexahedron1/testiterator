@@ -1,0 +1,6 @@
+RainIntensity: 0.25
+RumbleIntensity: 0.5652174
+Clouds: 0.1521739
+Effects: RainSiren-0.4021739-277-42-fadein:1000, DayNight-1-30-30, LightRain-0.02173913-111-1, 
+PlacedObjects: WallSteamer><892.6473><662.3646><0~100, WallSteamer><971.1985><661.775><0~100, WallSteamer><808.6588><661.6217><0~100, WallSteamer><728.5555><661.0461><0~100, 
+FadePalette: 15, 0.3804348

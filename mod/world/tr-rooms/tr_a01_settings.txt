@@ -1,0 +1,8 @@
+DangerType: Rain
+RainIntensity: 0.8260869
+RumbleIntensity: 1
+Grime: 0.2065217
+Effects: RainSiren-0.7065217-326-3-songname:Moon_Siren-fadein:1000, Fog-0.4021739-485-288, GreenSparks-0.05434782-674-498, LightRain-0.1086956-20-20, 
+PlacedObjects: DeadSeedCob><482.1165><411.4126><, DeadSeedCob><456.9095><429.5716><, SeedCob><398.0597><410.6886><-133~-222~3~5, WallSteamer><758.5331><691.3027><0~100, WallSteamer><674.8726><693.658><0~100, 
+AmbientSounds: OMNI><AM_RAIN-QuietThunder.ogg><459.8026><483.2819><0.5><1, 
+FadePalette: 15, 0.5, 0.5108696, 0.5217391

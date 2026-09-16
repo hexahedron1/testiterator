@@ -1,0 +1,7 @@
+CeilingDrips: 0.1630435
+RainIntensity: 0.06521739
+RumbleIntensity: 0.1413043
+Clouds: 0.1086956
+Effects: RainSiren-0.1086956-743-499-songname:Moon_Sire-fadein:250, DayNight-1-427-208, 
+PlacedObjects: WallSteamer><698.8318><756.3583><0~100, WallSteamer><780.1969><757.035><0~100, WallSteamer><861.0249><756.1984><0~100, WallSteamer><477.106><1636.639><0~100, WallSteamer><558.653><1637.129><0~100, WallSteamer><396.6474><1633.885><0~100, WallSteamer><799.8787><1982.097><0~100, WallSteamer><879.1904><1979.811><0~100, WallSteamer><718.3204><1175.912><0~100, WallSteamer><800.8016><1176.776><0~100, 
+FadePalette: 15, 0.2826087, 0.3043478, 0.326087

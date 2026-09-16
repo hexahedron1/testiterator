@@ -1,0 +1,4 @@
+Template: tr_settingstemplate_underhang
+Effects: GreenSparks-0.75-466-160, 
+PlacedObjects: LightFixture><178.7116><397.0537><RedLight~17.32051~-10~17, LightFixture><1864.191><401.4411><RedLight~17.32051~-10~31, LightFixture><1262.143><359.831><RedLight~17.32051~-10~25, 
+FadePalette: 17, 0.8152174, 0.7391304

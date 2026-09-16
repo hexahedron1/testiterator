@@ -1,0 +1,5 @@
+Template: tr_settingstemplate_underhang
+DangerType: Thunder
+EffectColorB: 7
+PlacedObjects: LightFixture><1199.388><1120.011><RedLight~17.32051~-10~42, LightFixture><1922.425><1339.097><RedLight~17.32051~-10~57, LightFixture><828.8187><1412.691><RedLight~17.32051~-10~86, LightFixture><124.1705><1171.421><RedLight~17.32051~-10~56, LightFixture><104.5535><521.8106><RedLight~17.32051~-10~46, LightFixture><1106.189><559.8113><RedLight~-358.7971~-34.81311~9, LightFixture><2102.886><265.178><RedLight~17.32051~-10~44, LightFixture><2107.307><699.5526><RedLight~17.32051~-10~74, LightFixture><830.3724><793.8938><RedLight~17.32051~-10~60, LightFixture><1929.063><59.9343><RedLight~17.32051~-10~45, 
+FadePalette: 17, 0.8586956, 0.8586956, 0.8586956, 0.8586956

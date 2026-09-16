@@ -1,0 +1,3 @@
+Template: tr_settingstemplate_interior
+Effects: SSSwarmers-0-26-58, 
+PlacedObjects: SuperStructureFuses><311.0921><470.3773><140~102, SuperStructureFuses><248.417><249.3601><80~118, LightFixture><531.4016><410.6305><RedLight~17.32051~-10~20, 

@@ -1,0 +1,2 @@
+Template: tr_settingstemplate_interior
+PlacedObjects: LightSource><229.7255><162.5515><1~Environment~0~100~50~86.60254~0~0~None~0~0, 

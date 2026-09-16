@@ -1,0 +1,21 @@
+DangerType: Thunder
+CeilingDrips: 0.5
+RainIntensity: 0
+RumbleIntensity: 0.5
+WaveSpeed: 0.75
+WaveLength: 0.5
+WaveAmplitude: 0
+SecondWaveLength: 0.1666667
+SecondWaveAmplitude: 0
+Clouds: 0.01086957
+Grime: 0
+BkgDroneVolume: 0.3
+BkgDroneNoThreatVolume: 1
+RandomItemDensity: 0.5
+RandomItemSpearChance: 0.2
+WaterReflectionAlpha: 1
+Palette: 15
+EffectColorA: 19
+EffectColorB: 5
+Effects: Lightning-0.8-242-104, ElectricDeath-1-20-20, GreenSparks-0.75-466-160, RainSiren-0.6-544-10-songname:Moon_Siren, ExtraLoudThunder-0.25-36-131,
+AmbientSounds: OMNI><AM_ENV-NatWind.ogg><223.2284><443.5511><0.5><1, OMNI><AM_RAIN-QuietThunder.ogg><298.316><323.3284><0.75><1, OMNI><AM_ENV-WallHum.ogg><743.1225><560.3419><0.3913043><1, OMNI><AM_IND-SuperStructure.ogg><120.6284><163.1534><0.3><1,

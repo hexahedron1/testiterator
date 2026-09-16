@@ -1,0 +1,13 @@
+base : ???
+Test Iterator : 3 : Creature of steel
+Intake system : 1
+Supports : 2
+Exhaust System : 3 : 500 dropwigs
+The Facade : 4
+Power Distribution Assembly : 5
+Arteries : 6
+Primary Power Rail : 7
+Archival Manifold : 8
+Memory Confux : -2
+Cognitive Processing Core : 0
+

@@ -1,0 +1,50 @@
+Subergion: Primary Power Rail
+Room Setting Templates: Wall, Wall-inside, Underhang, Interior, MemCon, Pipes, Archive
+Subregion: Test Iterator
+Subregion: The Facade
+Subregion: Exhaust System
+Subregion: Supports
+Subregion: Arteries
+Subregion: Memory Confux
+Subregion: Cognitive Processing Core
+Subregion: Power Distribution Assembly
+Subregion: Archival Manifold
+Subregion: Intake system
+overseersColorOverride(0.3215686275, 1, 0.4705882353): 1
+inspectorColor: 0.3215686275, 1, 0.4705882353
+overseersMin: 5
+overseersMax: 12
+playerGuideOverseerSpawnChance: 0.1
+Room_Attr: TR_C01: PinkLizard-Avoid,GreenLizard-Avoid,BlueLizard-Avoid,YellowLizard-Avoid,WhiteLizard-Avoid,RedLizard-Avoid,BlackLizard-Avoid,Salamander-Avoid,CyanLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_C02: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_S02: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_C03: BlueLizard-Avoid,WhiteLizard-Avoid,Salamander-Avoid,Leech-Avoid,SeaLeech-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,JetFish-Avoid,BigEel-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,EelLizard-Avoid,AquaCenti-Avoid,
+Room_Attr: TR_C04: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_C05: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_A01: BlueLizard-Like,WhiteLizard-Like,Vulture-Like,CicadaA-Like,CicadaB-Like,Centiwing-Like,Overseer-Like,KingVulture-Like,MirosVulture-Like,
+Room_Attr: TR_S01: Overseer-Like,
+Room_Attr: TR_A02: Overseer-Like,
+Room_Attr: TR_A03: BlueLizard-Like,WhiteLizard-Like,Vulture-Like,CicadaA-Like,CicadaB-Like,Centiwing-Like,Overseer-Like,KingVulture-Like,MirosVulture-Like,
+Room_Attr: TR_A04: BlueLizard-Like,WhiteLizard-Like,Vulture-Like,CicadaA-Like,CicadaB-Like,Centiwing-Like,Overseer-Like,KingVulture-Like,MirosVulture-Like,
+Room_Attr: TR_A05: BlueLizard-Like,WhiteLizard-Like,Vulture-Like,CicadaA-Like,CicadaB-Like,Centiwing-Like,Overseer-Like,KingVulture-Like,MirosVulture-Like,
+Room_Attr: TR_A06: BlueLizard-Like,WhiteLizard-Like,Vulture-Forbidden,CicadaA-Like,CicadaB-Like,Centiwing-Like,Overseer-Like,KingVulture-Forbidden,MirosVulture-Like,
+Room_Attr: TR_A08: Overseer-Like,
+Room_Attr: TR_A07: BlueLizard-Like,WhiteLizard-Like,Vulture-Forbidden,CicadaA-Like,CicadaB-Like,Centiwing-Like,Overseer-Like,KingVulture-Forbidden,MirosVulture-Like,
+Room_Attr: TR_A09: BlueLizard-Like,WhiteLizard-Like,Vulture-Forbidden,CicadaA-Like,CicadaB-Like,Centiwing-Like,Overseer-Like,KingVulture-Forbidden,MirosVulture-Like,
+Room_Attr: TR_A10: BlueLizard-Like,WhiteLizard-Like,Vulture-Like,CicadaA-Like,CicadaB-Like,Centiwing-Like,Overseer-Like,KingVulture-Like,MirosVulture-Like,
+Room_Attr: TR_ROOF: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Forbidden,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Forbidden,MirosVulture-Avoid,
+Room_Attr: TR_B01: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Like,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_B02: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_D01: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_D02: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_D03: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_D04: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_D05: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_LAB01: BlueLizard-Avoid,WhiteLizard-Avoid,Salamander-Avoid,Leech-Avoid,SeaLeech-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,JetFish-Avoid,BigEel-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,EelLizard-Avoid,AquaCenti-Avoid,
+Room_Attr: TR_LAB02: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_LAB03: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_CHAMBER: BlueLizard-Avoid,WhiteLizard-Avoid,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,Centiwing-Avoid,Overseer-Avoid,KingVulture-Avoid,MirosVulture-Avoid,
+Room_Attr: TR_AI: Overseer-Avoid,
+Room_Attr: TR_PIPE01: BlueLizard-Avoid,WhiteLizard-Avoid,Salamander-Like,Leech-Like,SeaLeech-Like,Vulture-Avoid,CicadaA-Avoid,CicadaB-Avoid,JetFish-Like,BigEel-Like,Centiwing-Avoid,Overseer-Forbidden,KingVulture-Avoid,MirosVulture-Avoid,EelLizard-Like,AquaCenti-Like,
+Room_Attr: TR_PIPE02: Salamander-Like,Leech-Like,SeaLeech-Like,JetFish-Like,BigEel-Like,Overseer-Forbidden,EelLizard-Like,AquaCenti-Like,
+Room_Attr: TR_PIPE03: Salamander-Like,Leech-Like,SeaLeech-Like,JetFish-Like,BigEel-Like,Overseer-Forbidden,EelLizard-Like,AquaCenti-Like,

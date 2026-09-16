@@ -1,0 +1,11 @@
+Template: tr_settingstemplate_underhang
+DangerType: Rain
+RainIntensity: 0.05434782
+WaveSpeed: 0.5
+WaveLength: 1
+WaveAmplitude: 0
+SecondWaveLength: 0.1666667
+SecondWaveAmplitude: 0
+Effects: LightRain-0.05434782-238-56, 
+PlacedObjects: LightFixture><917.1675><246.0283><RedLight~17.32051~-10~97, LightFixture><654.9893><660.7122><RedLight~17.32051~-10~91, LightFixture><919.9995><966.9995><RedLight~17.32051~-10~23, LightFixture><338.0673><1279.012><RedLight~17.32051~-10~39, LightFixture><549.5901><2416.021><RedLight~17.32051~-10~2, LightFixture><916.362><3072.519><RedLight~17.32051~-10~27, LightFixture><916.0339><2272.939><RedLight~17.32051~-10~52, LightFixture><825.0329><3702.534><RedLight~-205.1275~72.6709~50, LightFixture><520.0467><3339.022><RedLight~17.32051~-10~78, LightFixture><846.8536><1321.01><RedLight~17.32051~-10~25, LightFixture><918.8978><2890.056><RedLight~17.32051~-10~10, LightFixture><723.9631><2696.714><RedLight~17.32051~-10~10, LightFixture><440.0525><1898.266><RedLight~-158.2144~172.8375~75, ReliableSpear><674.3305><2819.001><, SteamPipe><886.5592><2219.755><-126~1, SteamPipe><865.6112><3601.272><-140~-1, SteamPipe><883.218><1739><-123~-1, SteamPipe><862.6382><219.8565><-123~-1, LightFixture><917.0543><1646.035><RedLight~17.32051~-10~38, LightFixture><844.2375><1957.913><RedLight~17.32051~-10~39, 
+FadePalette: 17, 0.8043478, 0.7826087, 0.75, 0.7282609, 0.7065217

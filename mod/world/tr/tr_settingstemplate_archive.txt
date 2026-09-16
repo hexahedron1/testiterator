@@ -1,0 +1,21 @@
+DangerType: None
+CeilingDrips: 0.5
+RainIntensity: 0
+RumbleIntensity: 0
+WaveSpeed: 0.75
+WaveLength: 0.5
+WaveAmplitude: 0
+SecondWaveLength: 0.1666667
+SecondWaveAmplitude: 0
+Clouds: 0
+Grime: 0
+BkgDroneVolume: 0.3
+BkgDroneNoThreatVolume: 1
+RandomItemDensity: 0.5
+RandomItemSpearChance: 0.2
+WaterReflectionAlpha: 1
+Palette: 26
+EffectColorA: 19
+EffectColorB: 14
+Effects: SuperStructureProjector-0.3586957-338-36, ProjectedScanLines-0.2065217-347-109, SunBlock-1-20-20, ZeroG-1-57-107, 
+AmbientSounds: OMNI><AM_IND-SuperStructure.ogg><366.1334><166.6625><0.5><1, OMNI><SO_SFX-Data1.ogg><580.3005><395.7358><0.3043478><1, OMNI><SO_SFX-Data3.ogg><577.0836><338.6817><0.2608696><0.7847826, 
