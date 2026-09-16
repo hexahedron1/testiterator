@@ -70,6 +70,7 @@ public class TROracle : Oracle {
 
     public override void Collide(PhysicalObject otherObject, int myChunk, int otherChunk) {
         base.Collide(otherObject, myChunk, otherChunk);
+        if (otherObject is Player) ((TROracleBehavior)oracleBehavior).gotHitByPlayer = true;
     }
 }
 
@@ -99,6 +100,7 @@ public class TROracleBehavior : SSOracleBehavior {
                 oracle.room.AddObject(debugLabel_lastPos = new(new Vector2(240f, 580f), [9]));
                 debugLabel_lastPos.color = Color.yellow;
             }
+            SwitchAction(TROracleAction.Idle);
         }
         catch (Exception e) {
             Plugin.Logger.LogError("istg");
@@ -146,6 +148,21 @@ public class TROracleBehavior : SSOracleBehavior {
     public void ReactToHitByWeapon() {
         
     }
+
+    public class TROracleAction(string value, bool register = false) : ExtEnum<TROracleAction>(value, register) {
+        public static readonly TROracleAction Idle = new("Idle", true);
+        public static readonly TROracleAction FirstEncounter = new("FirstEncounter", true);
+        public static readonly TROracleAction InspectObject = new("InspectObject", true);
+        public static readonly TROracleAction SMThrowOut = new("SMThrowOut", true);
+    }
+
+    private new TROracleAction action;
+    private int actionProgress = 0;
+
+    public void SwitchAction(TROracleAction newAction) {
+        action = newAction;
+        actionProgress = 0;
+    }
     public override void Update(bool eu) {
         if (cantFuckingWork) return;
         try {
@@ -161,49 +178,46 @@ public class TROracleBehavior : SSOracleBehavior {
                 }
             }
 
-            //DataPearl inspectPearl1 = inspectPearl;
-            //if (timeSinceSeenPlayer >= 0) timeSinceSeenPlayer++;
-            if (movementBehavior == MovementBehavior.Idle) {
-                invstAngSpeed = 1f;
-                if (investigateMarble == null && oracle.marbles.Count > 0) {
-                    var selectable = (from x in oracle.marbles where x.orbitObj == null select x).ToArray();
-                    investigateMarble = selectable[Random.Range(0, selectable.Length)];
-                    //Bang(investigateMarble.firstChunk);
-                    SetLabel(GlyphLabel.RandomString(1, 10, investigateMarble.marbleIndex, false));
-                    Plugin.Logger.LogDebug("Picked new pearl to look at: " + investigateMarble.abstractPhysicalObject.ID);
-                    investigateAngle = Custom.VecToDeg(investigateMarble.firstChunk.pos - oracle.firstChunk.pos); //Random.value * 360f;
-                    SetNewDestination(investigateMarble.firstChunk.pos - Custom.DegToVec(investigateAngle) * 100f);
-                }
-
-                if (investigateMarble != null) {
-                    //foreach (var i in oracle.marbles) BlinkPearl(i, i == investigateMarble);
-                    lookPoint = investigateMarble.firstChunk.pos;
-                    floatyMovement = true;
-
-                    if (Mathf.Approximately(pathProgression, 1f) && Random.value < 0.05) investigateMarble = null;
-                }
-
-                /*if (player != null && Custom.DistLess(player.firstChunk.pos, oracle.firstChunk.pos, 100f)) {
-                    floatyMovement = true;
-                    SetNewDestination(player.firstChunk.pos);
-                }*/
-                currentGetTo = Custom.Bezier(lastPos, ClampVectorInRoom(lastPos + lastPosHandle), nextPos,
-                    ClampVectorInRoom(nextPos + nextPosHandle), pathProgression);
-                pathProgression = Mathf.Min(1f,
-                    pathProgression + 1f / Mathf.Lerp((float)(40.0 + pathProgression * 80.0),
-                        Vector2.Distance(lastPos, nextPos) / 5f, 0.5f));
-                if (debug) {
-                    debugLabel_currentGetTo.pos = currentGetTo;
-                    debugLabel_lastPos.pos = lastPos;
-                    debugLabel_nextPos.pos = nextPos;
-                    //testLabel.pos = oracle.firstChunk.pos + new Vector2(100f, 100f);
-                    if (tikk % 5 == 0 && testLabel.visibleGlyphs < testLabel.glyphs.Length) {
-                        testLabel.visibleGlyphs++;
-                        oracle.room.PlaySound(SoundID.SS_AI_Text);
+            if (action == TROracleAction.Idle) {
+                if (movementBehavior == MovementBehavior.Idle) {
+                    invstAngSpeed = 1f;
+                    if (investigateMarble == null && oracle.marbles.Count > 0) {
+                        var selectable = (from x in oracle.marbles where x.orbitObj == null select x).ToArray();
+                        investigateMarble = selectable[Random.Range(0, selectable.Length)];
+                        //Bang(investigateMarble.firstChunk);
+                        SetLabel(GlyphLabel.RandomString(1, 10, investigateMarble.marbleIndex, false));
+                        Plugin.Logger.LogDebug("Picked new pearl to look at: " +
+                                               investigateMarble.abstractPhysicalObject.ID);
+                        investigateAngle =
+                            Custom.VecToDeg(investigateMarble.firstChunk.pos -
+                                            oracle.firstChunk.pos); //Random.value * 360f;
+                        SetNewDestination(investigateMarble.firstChunk.pos - Custom.DegToVec(investigateAngle) * 100f);
                     }
-                }  //Move();
-            }
 
+                    if (investigateMarble != null) {
+                        lookPoint = investigateMarble.firstChunk.pos;
+                        floatyMovement = true;
+
+                        if (Mathf.Approximately(pathProgression, 1f) && Random.value < 0.05) investigateMarble = null;
+                    }
+
+                    currentGetTo = Custom.Bezier(lastPos, ClampVectorInRoom(lastPos + lastPosHandle), nextPos,
+                        ClampVectorInRoom(nextPos + nextPosHandle), pathProgression);
+                    pathProgression = Mathf.Min(1f,
+                        pathProgression + 1f / Mathf.Lerp((float)(40.0 + pathProgression * 80.0),
+                            Vector2.Distance(lastPos, nextPos) / 5f, 0.5f));
+                    if (debug) {
+                        debugLabel_currentGetTo.pos = currentGetTo;
+                        debugLabel_lastPos.pos = lastPos;
+                        debugLabel_nextPos.pos = nextPos;
+                        //testLabel.pos = oracle.firstChunk.pos + new Vector2(100f, 100f);
+                        if (tikk % 5 == 0 && testLabel.visibleGlyphs < testLabel.glyphs.Length) {
+                            testLabel.visibleGlyphs++;
+                            oracle.room.PlaySound(SoundID.SS_AI_Text);
+                        }
+                    } //Move();
+                }
+            }
             if (debug) {
                 if (timeSinceLastError < 20) {
                     if (tikk % 10 == 0) {
@@ -213,15 +227,11 @@ public class TROracleBehavior : SSOracleBehavior {
                     else if (tikk % 10 == 5) errorLabel.visibleGlyphs = 0;
                 }
                 else errorLabel.visibleGlyphs = 0;
-            }
-
-            if (debug) {
                 if (IsHeld(errorTestPearl) && !errorPearlWasHeld) throw new Exception("THIS IS A TEST EXCEPTION");
                 errorPearlWasHeld = IsHeld(errorTestPearl);
             }
         } catch (Exception e) {
             timeSinceLastError = 0;
-            //oracle.room.PlaySound(SoundID.Zapper_Zap);
             Plugin.Logger.LogError("ERROR");
             Plugin.Logger.LogError(e);
         }
