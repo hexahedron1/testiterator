@@ -54,7 +54,7 @@ public class TROracle : Oracle {
         for (int i = 0; i < 2; i++)
             CreateMarble(marbles.Last(), new Vector2(380, 510) + Custom.RNV() * 20f, 1, 15f, rnd.Next(3));
         for (int i = 0; i < 10; i++)
-            CreateMarble(rnd.Next(4) == 0 ? marbles.Last() : null, new Vector2(640, 510) + Custom.DegToVec(rnd.Next(360))*((float)rnd.NextDouble()*90f + 30f), 0, 0.0f, rnd.Next(3));
+            CreateMarble(rnd.Next(4) == 0 ? marbles.Last() : null, new Vector2(640, 510) + Custom.DegToVec(rnd.Next(360))*((float)rnd.NextDouble()*90f + 30f), 0, 2f, rnd.Next(3));
     }
     
     public override void InitiateGraphicsModule() {
@@ -94,12 +94,12 @@ public class TROracleBehavior : SSOracleBehavior {
                 oracle.room.AddObject(testLabel = new(new Vector2(240f, 600f),
                     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]));
                 oracle.room.AddObject(errorLabel = new(new Vector2(240f, 580f), [9, 13]));
-                oracle.room.AddObject(debugLabel_currentGetTo = new(new Vector2(240f, 580f), [2]));
-                debugLabel_currentGetTo.color = Color.white;
                 oracle.room.AddObject(debugLabel_nextPos = new(new Vector2(240f, 580f), [2]));
                 debugLabel_nextPos.color = Color.green;
                 oracle.room.AddObject(debugLabel_lastPos = new(new Vector2(240f, 580f), [9]));
                 debugLabel_lastPos.color = Color.yellow;
+                oracle.room.AddObject(debugLabel_currentGetTo = new(new Vector2(240f, 580f), [2]));
+                debugLabel_currentGetTo.color = Color.magenta;
             }
             SwitchAction(TROracleAction.Idle);
         }
@@ -239,6 +239,17 @@ public class TROracleBehavior : SSOracleBehavior {
                 pathProgression = Mathf.Min(1f,
                     pathProgression + 1f / Mathf.Lerp((float)(40.0 + pathProgression * 80.0),
                         Vector2.Distance(lastPos, nextPos) / 5f, 0.5f));
+                consistentBasePosCounter++;
+                if (oracle.room.readyForAI) {
+                    Vector2 vector2 = new Vector2(Random.value * oracle.room.PixelWidth, Random.value * oracle.room.PixelHeight);
+                    if (!(oracle.room.GetTile(vector2).Solid || BasePosScore(vector2) + 40.0 >= BasePosScore(baseIdeal))) {
+                        baseIdeal = vector2;
+                        consistentBasePosCounter = 0;
+                    }
+                }
+                else
+                    baseIdeal = nextPos;
+                ((TROracleArm)oracle.arm).Update();
             }
 
             if (debug) {
@@ -253,7 +264,6 @@ public class TROracleBehavior : SSOracleBehavior {
                 if (IsHeld(errorTestPearl) && !errorPearlWasHeld) throw new Exception("THIS IS A TEST EXCEPTION");
                 errorPearlWasHeld = IsHeld(errorTestPearl);
             }
-            oracle.arm.Update();
         } catch (Exception e) {
             timeSinceLastError = 0;
             Plugin.Logger.LogError("ERROR");
@@ -493,7 +503,7 @@ public class TROracleArm : Oracle.OracleArm {
         baseMoving = Vector2.Distance(BasePos(1f), vector2) > (baseMoving ? 50.0 : 350.0) && oracle.oracleBehavior.consistentBasePosCounter > 30;
         lastFramePos = framePos;
         if (baseMoving) {
-            framePos = Mathf.MoveTowardsAngle(framePos * 90f, num2 * 90f, 1f) / 90f;
+            framePos = Mathf.MoveTowardsAngle(framePos * 90f, num2 * 90f, 0.3f) / 90f;
             if (baseMoveSoundLoop != null) {
                 baseMoveSoundLoop.volume = Mathf.Min(baseMoveSoundLoop.volume + 0.1f, 1f);
                 baseMoveSoundLoop.pitch = Mathf.Min(baseMoveSoundLoop.pitch + 0.025f, 1f);

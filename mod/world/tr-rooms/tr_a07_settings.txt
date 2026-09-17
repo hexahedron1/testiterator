@@ -1,5 +1,5 @@
 RainIntensity: 0
-RumbleIntensity: 0.05434782
+RumbleIntensity: 0.01086957
 WaveSpeed: 0.5
 WaveLength: 1
 WaveAmplitude: 0.0009500193
