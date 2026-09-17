@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
+using JetBrains.Annotations;
 using TestIterator;
 using MoreSlugcats;
 using RWCustom;
@@ -54,7 +56,7 @@ public class TROracle : Oracle {
         for (int i = 0; i < 2; i++)
             CreateMarble(marbles.Last(), new Vector2(380, 510) + Custom.RNV() * 20f, 1, 15f, rnd.Next(3));
         for (int i = 0; i < 10; i++)
-            CreateMarble(rnd.Next(4) == 0 ? marbles.Last() : null, new Vector2(640, 510) + Custom.DegToVec(rnd.Next(360))*((float)rnd.NextDouble()*90f + 30f), 0, 2f, rnd.Next(3));
+            CreateMarble(rnd.Next(3) == 0 ? marbles.Last() : null, new Vector2(640, 510) + Custom.DegToVec(rnd.Next(360))*((float)rnd.NextDouble()*90f + 30f), 0, rnd.Next(2, 9), rnd.Next(3));
     }
     
     public override void InitiateGraphicsModule() {
@@ -92,7 +94,7 @@ public class TROracleBehavior : SSOracleBehavior {
             movementBehavior = MovementBehavior.Idle;
             if (debug) {
                 oracle.room.AddObject(testLabel = new(new Vector2(240f, 600f),
-                    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]));
+                    [ 12, 11 ]));
                 oracle.room.AddObject(errorLabel = new(new Vector2(240f, 580f), [9, 13]));
                 oracle.room.AddObject(debugLabel_nextPos = new(new Vector2(240f, 580f), [2]));
                 debugLabel_nextPos.color = Color.green;
@@ -101,7 +103,7 @@ public class TROracleBehavior : SSOracleBehavior {
                 oracle.room.AddObject(debugLabel_currentGetTo = new(new Vector2(240f, 580f), [2]));
                 debugLabel_currentGetTo.color = Color.magenta;
             }
-            SwitchAction(TROracleAction.Idle);
+            SwitchState(TROracleState.Idle);
         }
         catch (Exception e) {
             Plugin.Logger.LogError("istg");
@@ -150,21 +152,147 @@ public class TROracleBehavior : SSOracleBehavior {
         
     }
 
-    public class TROracleAction(string value, bool register = false) : ExtEnum<TROracleAction>(value, register) {
-        public static readonly TROracleAction Idle = new("Idle", true);
-        public static readonly TROracleAction FirstEncounter = new("FirstEncounter", true);
-        public static readonly TROracleAction InspectObject = new("InspectObject", true);
-        public static readonly TROracleAction SMThrowOut = new("SMThrowOut", true);
-        public static readonly TROracleAction Welcome = new("Welcome", true);
+    public class TROracleState(string value, bool register = false) : ExtEnum<TROracleState>(value, register) {
+        public static readonly TROracleState Idle = new("Idle", true);
+        public static readonly TROracleState FirstEncounter_Spear = new("FirstEncounter_Spear", true);
+        public static readonly TROracleState FirstEncounter_Arti = new("FirstEncounter_Arti", true);
+        public static readonly TROracleState FirstEncounter_Red = new("FirstEncounter_Red", true);
+        public static readonly TROracleState FirstEncounter_Gourm = new("FirstEncounter_Gourm", true);
+        public static readonly TROracleState FirstEncounter_White = new("FirstEncounter_White", true);
+        public static readonly TROracleState FirstEncounter_Yellow = new("FirstEncounter_Yellow", true);
+        public static readonly TROracleState FirstEncounter_Riv = new("FirstEncounter_Riv", true);
+        public static readonly TROracleState FirstEncounter_Saint = new("FirstEncounter_Saint", true);
+        public static readonly TROracleState FirstEncounter_Unknown = new("FirstEncounter_Unknown", true);
+        public static readonly TROracleState FirstEncounter_Inv = new("FirstEncounter_Inv", true);
+        public static readonly TROracleState InspectObject = new("InspectObject", true);
+        public static readonly TROracleState SMThrowOut = new("SMThrowOut", true);
+        public static readonly TROracleState Welcome = new("Welcome", true);
     }
 
-    private new TROracleAction action;
-    private int actionProgress = 0;
+    private TROracleState state;
+    private int stateProgress;
 
-    public void SwitchAction(TROracleAction newAction) {
-        action = newAction;
-        actionProgress = 0;
+    [CanBeNull]
+    public TROracleState GetFirstEncounterState(SlugcatStats.Name name) {
+        if (player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Spear)
+            return TROracleState.FirstEncounter_Spear;
+        if (player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Artificer)
+            return TROracleState.FirstEncounter_Arti;
+        if (player.SlugCatClass == SlugcatStats.Name.Red)
+            return TROracleState.FirstEncounter_Red;
+        if (player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Gourmand)
+            return TROracleState.FirstEncounter_Gourm;
+        if (player.SlugCatClass == SlugcatStats.Name.White)
+            return TROracleState.FirstEncounter_White;
+        if (player.SlugCatClass == SlugcatStats.Name.Yellow)
+            return TROracleState.FirstEncounter_Yellow;
+        if (player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Rivulet)
+            return TROracleState.FirstEncounter_Riv;
+        if (player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Saint)
+            return TROracleState.FirstEncounter_Saint;
+        if (player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel)
+            return TROracleState.FirstEncounter_Inv;
+        return null;
     }
+
+    public void SwitchState(TROracleState newState) {
+        var oldState = state;
+        stateProgress = 0;
+        // filtering
+        if (newState == TROracleState.Welcome && !oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Contains("TR_MetPlayer")) newState = GetFirstEncounterState(player.SlugCatClass) ?? TROracleState.FirstEncounter_Unknown;
+        
+        state = newState;
+        Plugin.Logger.LogInfo("New state: " + state);
+        if (state.value.StartsWith("FirstEncounter")) {
+            awareOfPlayer = true;
+            awareOfPlayerTime = 0f;
+            movementBehavior = MovementBehavior.Investigate;
+            oracle.room.gravity = 0.8f;
+            oracle.room.PlaySound(SoundID.Broken_Anti_Gravity_Switch_Off);
+            LockShortcuts();
+            TurnOffSSMusic(true);
+        }
+
+        if (state == TROracleState.Idle) {
+            UnlockShortcuts();
+        }
+    }
+
+    private bool awareOfPlayer;
+    private float awareOfPlayerTime;
+
+    private void SetPalette(int palA, int palB, float blend) {
+        foreach (var t in oracle.room.game.cameras) {
+            if (t.room == oracle.room && !t.AboutToSwitchRoom)
+                t.ChangeBothPalettes(palA, palB, blend);
+        }
+    }
+
+    private int idleProgress;
+    void FiniteStateMachine(Room room) {
+        if (state == TROracleState.Idle) {
+            SetPalette(23, 26, Math.Min(1f, stateProgress/20f));
+            if (movementBehavior == MovementBehavior.Idle) {
+                invstAngSpeed = 1f;
+                if (investigateMarble == null && oracle.marbles.Count > 0) {
+                    if (idleProgress > (room.world.rainCycle.AmountLeft > 0 ? 2400 : 120) && Random.Range(0, room.world.rainCycle.AmountLeft > 0 ? 150 : 10) == 0) {
+                        movementBehavior = MovementBehavior.Meditate;
+                        SetNewDestination(new Vector2(480, 350));
+                        idleProgress = 0;
+                    }
+                    var selectable = (from x in oracle.marbles where x.orbitObj == null select x).ToArray();
+                    investigateMarble = selectable[Random.Range(0, selectable.Length)];
+                    //Bang(investigateMarble.firstChunk);
+                    SetLabel(GlyphLabel.RandomString(1, 10, investigateMarble.marbleIndex, false));
+                    if (debug) Plugin.Logger.LogDebug("Picked new pearl to look at: " + investigateMarble.abstractPhysicalObject.ID);
+                    investigateAngle =
+                        Custom.VecToDeg(investigateMarble.firstChunk.pos -
+                                        oracle.firstChunk.pos); //Random.value * 360f;
+                    SetNewDestination(investigateMarble.firstChunk.pos - Custom.DegToVec(investigateAngle) * 100f);
+                }
+
+                if (player != null && player.room == oracle.room && player.DangerPos.y < 640f && !awareOfPlayer) {
+                    SwitchState(TROracleState.Welcome);
+                }
+                if (player != null && player.room != oracle.room)
+                    awareOfPlayer = false;
+                if (investigateMarble != null) {
+                    lookPoint = investigateMarble.firstChunk.pos;
+                    floatyMovement = true;
+                    if (Mathf.Approximately(pathProgression, 1f) && Random.value < 0.05) investigateMarble = null;
+                }
+
+                
+                if (debug) {
+                    debugLabel_currentGetTo.pos = currentGetTo;
+                    debugLabel_lastPos.pos = lastPos;
+                    debugLabel_nextPos.pos = nextPos;
+                    //testLabel.pos = oracle.firstChunk.pos + new Vector2(100f, 100f);
+                    if (tikk % 5 == 0 && testLabel.visibleGlyphs < testLabel.glyphs.Length) {
+                        testLabel.visibleGlyphs++;
+                        oracle.room.PlaySound(SoundID.SS_AI_Text);
+                    }
+                } 
+            } else if (movementBehavior == MovementBehavior.Meditate) {
+                lookPoint = oracle.bodyChunks[0].pos;
+                currentGetTo = new Vector2(480, 350);
+                if (idleProgress > (room.world.rainCycle.AmountLeft > 0 ? 800 : 1600) && Random.Range(0, room.world.rainCycle.AmountLeft > 0 ? 150 : 1200) == 0) {
+                    movementBehavior = MovementBehavior.Idle;
+                    idleProgress = 0;
+                }
+                if (gotHitByPlayer) {
+                    gotHitByPlayer = false;
+                    SwitchState(TROracleState.Welcome);
+                }
+            }
+            stateProgress++;
+            idleProgress++;
+        } else if (state == TROracleState.FirstEncounter_White) {
+            SetPalette(26, 23, Math.Min(1f, awareOfPlayerTime*2));
+        }
+    }
+
+    private float investigateAngle2;
     public override void Update(bool eu) {
         if (cantFuckingWork) return;
         try {
@@ -179,78 +307,50 @@ public class TROracleBehavior : SSOracleBehavior {
                     oracle.room.AddObject(errorTestPearl);
                 }
             }
+            FiniteStateMachine(room);
+            if (movementBehavior == MovementBehavior.Investigate) {
+                if (player != null) {
+                    lookPoint = player.DangerPos;
+                    investigateAngle = 180f;
+                    bool newPos = false;
+                    if (investigateAngle2 < -90.0 || investigateAngle2 > 90.0 || oracle.room.aimap.getTerrainProximity(nextPos) < 2.0 || Random.value < 0.01) {
+                        investigateAngle2 = Mathf.Lerp(-70f, 70f, Random.value);
+                        invstAngSpeed = Mathf.Lerp(0.4f, 0.8f, Random.value) * (Random.value < 0.5 ? -1f : 1f);
+                        newPos = true;
+                    }
 
-            if (action == TROracleAction.Idle) {
-                if (movementBehavior == MovementBehavior.Idle) {
-                    invstAngSpeed = 1f;
-                    if (investigateMarble == null && oracle.marbles.Count > 0) {
-                        if (actionProgress > (room.world.rainCycle.AmountLeft > 0 ? 2400 : 120) && Random.Range(0, room.world.rainCycle.AmountLeft > 0 ? 150 : 10) == 0) {
-                            movementBehavior = MovementBehavior.Meditate;
-                            SetNewDestination(new Vector2(480, 350));
-                            actionProgress = 0;
+                    if (Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) >= 210f || Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) < 10f || newPos) {
+                        Vector2 vector2 = player.DangerPos + Custom.DegToVec(investigateAngle2) * 150f;
+                        if (oracle.room.aimap.getTerrainProximity(vector2) >= 2.0) {
+                            if (pathProgression > 0.9) {
+                                if (Custom.DistLess(oracle.firstChunk.pos, vector2, 30f))
+                                    floatyMovement = false;
+                                else if (!Custom.DistLess(nextPos, vector2, 30f))
+                                    SetNewDestination(vector2);
+                            }
+
+                            nextPos = vector2;
                         }
-                        var selectable = (from x in oracle.marbles where x.orbitObj == null select x).ToArray();
-                        investigateMarble = selectable[Random.Range(0, selectable.Length)];
-                        //Bang(investigateMarble.firstChunk);
-                        SetLabel(GlyphLabel.RandomString(1, 10, investigateMarble.marbleIndex, false));
-                        if (debug) Plugin.Logger.LogDebug("Picked new pearl to look at: " + investigateMarble.abstractPhysicalObject.ID);
-                        investigateAngle =
-                            Custom.VecToDeg(investigateMarble.firstChunk.pos -
-                                            oracle.firstChunk.pos); //Random.value * 360f;
-                        SetNewDestination(investigateMarble.firstChunk.pos - Custom.DegToVec(investigateAngle) * 100f);
-                    }
-
-                    if (investigateMarble != null) {
-                        lookPoint = investigateMarble.firstChunk.pos;
-                        floatyMovement = true;
-                        if (Mathf.Approximately(pathProgression, 1f) && Random.value < 0.05) investigateMarble = null;
-                    }
-
-                    
-                    if (debug) {
-                        debugLabel_currentGetTo.pos = currentGetTo;
-                        debugLabel_lastPos.pos = lastPos;
-                        debugLabel_nextPos.pos = nextPos;
-                        //testLabel.pos = oracle.firstChunk.pos + new Vector2(100f, 100f);
-                        if (tikk % 5 == 0 && testLabel.visibleGlyphs < testLabel.glyphs.Length) {
-                            testLabel.visibleGlyphs++;
-                            oracle.room.PlaySound(SoundID.SS_AI_Text);
-                        }
-                    } 
-                } else if (movementBehavior == MovementBehavior.Meditate) {
-                    lookPoint = oracle.bodyChunks[0].pos;
-                    currentGetTo = new Vector2(480, 350);
-                    if (actionProgress > (room.world.rainCycle.AmountLeft > 0 ? 800 : 1600) && Random.Range(0, room.world.rainCycle.AmountLeft > 0 ? 150 : 1200) == 0) {
-                        movementBehavior = MovementBehavior.Idle;
-                        actionProgress = 0;
-                    }
-                    if (gotHitByPlayer) {
-                        gotHitByPlayer = false;
-                        movementBehavior = MovementBehavior.Idle; // placeholder
-                        actionProgress = 0;
                     }
                 }
-                actionProgress++;
             }
-
-            if (movementBehavior != MovementBehavior.Meditate) {
-                currentGetTo = Custom.Bezier(lastPos, ClampVectorInRoom(lastPos + lastPosHandle), nextPos,
-                    ClampVectorInRoom(nextPos + nextPosHandle), pathProgression);
-                pathProgression = Mathf.Min(1f,
-                    pathProgression + 1f / Mathf.Lerp((float)(40.0 + pathProgression * 80.0),
-                        Vector2.Distance(lastPos, nextPos) / 5f, 0.5f));
-                consistentBasePosCounter++;
-                if (oracle.room.readyForAI) {
-                    Vector2 vector2 = new Vector2(Random.value * oracle.room.PixelWidth, Random.value * oracle.room.PixelHeight);
-                    if (!(oracle.room.GetTile(vector2).Solid || BasePosScore(vector2) + 40.0 >= BasePosScore(baseIdeal))) {
-                        baseIdeal = vector2;
-                        consistentBasePosCounter = 0;
-                    }
+            if (awareOfPlayer)
+                awareOfPlayerTime += 0.025f;
+            currentGetTo = Custom.Bezier(lastPos, ClampVectorInRoom(lastPos + lastPosHandle), nextPos, ClampVectorInRoom(nextPos + nextPosHandle), pathProgression);
+            pathProgression = Mathf.Min(1f, pathProgression + 1f / Mathf.Lerp((float)(40.0 + pathProgression * 80.0),
+                Vector2.Distance(lastPos, nextPos) / 5f, 0.5f));
+            consistentBasePosCounter++;
+            if (oracle.room.readyForAI) { 
+                Vector2 vector2 = new Vector2(Random.value * oracle.room.PixelWidth, Random.value * oracle.room.PixelHeight);
+                if (!(oracle.room.GetTile(vector2).Solid || BasePosScore(vector2) + 40.0 >= BasePosScore(baseIdeal))) {
+                    baseIdeal = vector2;
+                    consistentBasePosCounter = 0;
                 }
-                else
-                    baseIdeal = nextPos;
-                ((TROracleArm)oracle.arm).Update();
             }
+            else
+                baseIdeal = nextPos;
+            ((TROracleArm)oracle.arm).Update();
+            
 
             if (debug) {
                 if (timeSinceLastError < 20) {
