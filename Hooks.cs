@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using EffExt;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -35,8 +36,23 @@ public static class Hooks {
         On.DataPearl.ApplyPalette += On_DataPearl_ApplyPalette;
         On.SuperStructureFuses.ctor += On_SuperStructureFuses_ctor;
         On.DebugMouse.Update += On_DebugMouse_Update;
+        //On.Room.WaterFluxController.waterFluxState += On_Room_WaterFluxController_WaterFluxState;
     }
 
+    public static void Unapply() {
+        On.Room.ReadyForAI -= On_Room_ReadyForAI;
+        On.OracleGraphics.Gown.Color -= On_Gown_Color;
+        On.OracleGraphics.SkinColor -= On_OracleGraphics_SkinColor;
+        On.OracleGraphics.ArmJointGraphics.ctor -= On_ArmJointGraphics_ctor;
+        IL.Oracle.ctor -= IL_Oracle_ctor;
+        IL.Oracle.OracleArm.Joint.Update -= IL_Joint_Update;
+        IL.Oracle.OracleArm.Update -= IL_OracleArm_Update;
+        NewOracleID.UnregisterValues();
+        On.Oracle.SetUpMarbles -= On_Oracle_SetUpMables;
+        On.DataPearl.ApplyPalette -= On_DataPearl_ApplyPalette;
+        On.SuperStructureFuses.ctor -= On_SuperStructureFuses_ctor;
+        On.DebugMouse.Update -= On_DebugMouse_Update;
+    }
     private static void On_DebugMouse_Update(On.DebugMouse.orig_Update orig, DebugMouse self, bool eu) {
         orig(self, eu);
         if (!self.room.readyForAI || !self.room.BeingViewed) return;
@@ -52,26 +68,15 @@ public static class Hooks {
             }
         }
 
-        if (oracle is null) return;
-        text += $"\n== Oracle state==\n{oracle.behavior.state}\ntime: {oracle.behavior.stateTime} ({oracle.behavior.stateSwitchTime})\nprogress: {oracle.behavior.stateProgress}";
+        if (oracle != null) text += 
+            $"\n== Oracle state ==\n{oracle.behavior.state}\ntime: {oracle.behavior.stateTime} ({oracle.behavior.stateSwitchTime})\nprogress: {oracle.behavior.stateProgress}";
+
+
+        text += $"\nCycleProgression: {self.room.world.rainCycle.CycleProgression}";
         self.label.text = text;
         self.label2.text = text;
     }
-
-
-    public static void Unapply() {
-        On.Room.ReadyForAI -= On_Room_ReadyForAI;
-        On.OracleGraphics.Gown.Color -= On_Gown_Color;
-        On.OracleGraphics.SkinColor -= On_OracleGraphics_SkinColor;
-        On.OracleGraphics.ArmJointGraphics.ctor -= On_ArmJointGraphics_ctor;
-        IL.Oracle.ctor -= IL_Oracle_ctor;
-        IL.Oracle.OracleArm.Joint.Update -= IL_Joint_Update;
-        IL.Oracle.OracleArm.Update -= IL_OracleArm_Update;
-        NewOracleID.UnregisterValues();
-        On.Oracle.SetUpMarbles -= On_Oracle_SetUpMables;
-        On.DataPearl.ApplyPalette -= On_DataPearl_ApplyPalette;
-        On.SuperStructureFuses.ctor -= On_SuperStructureFuses_ctor;
-    }
+    
     private static void On_SuperStructureFuses_ctor(On.SuperStructureFuses.orig_ctor orig, SuperStructureFuses self, PlacedObject placedObject, IntRect rect, Room room) {
         orig(self, placedObject, rect, room);
         if (room.world.region is { name: "TR" }) {
