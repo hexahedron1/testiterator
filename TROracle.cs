@@ -29,7 +29,7 @@ public class TROracle : Oracle {
         behavior.SetNewDestination(new Vector2(480, 350));
     }
 
-    private TROracleBehavior behavior => (TROracleBehavior)oracleBehavior;
+    public TROracleBehavior behavior => (TROracleBehavior)oracleBehavior;
 
     private new void SetUpMarbles() {
         PhysicalObject orbitObj = this;
@@ -169,8 +169,10 @@ public class TROracleBehavior : SSOracleBehavior {
         public static readonly TROracleState Welcome = new("Welcome", true);
     }
 
-    private TROracleState state;
-    private int stateProgress;
+    public TROracleState state;
+    public int stateProgress;
+    public int stateSwitchTime;
+    public int stateTime => oracle.room.game.timeInRegionThisCycle - stateSwitchTime;
 
     [CanBeNull]
     public TROracleState GetFirstEncounterState(SlugcatStats.Name name) {
@@ -198,6 +200,7 @@ public class TROracleBehavior : SSOracleBehavior {
     public void SwitchState(TROracleState newState) {
         var oldState = state;
         stateProgress = 0;
+        stateSwitchTime = oracle.room.game.timeInRegionThisCycle;
         // filtering
         if (newState == TROracleState.Welcome && !oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Contains("TR_MetPlayer")) newState = GetFirstEncounterState(player.SlugCatClass) ?? TROracleState.FirstEncounter_Unknown;
         
@@ -253,6 +256,7 @@ public class TROracleBehavior : SSOracleBehavior {
 
                 if (player != null && player.room == oracle.room && player.DangerPos.y < 640f && !awareOfPlayer) {
                     SwitchState(TROracleState.Welcome);
+                    return;
                 }
                 if (player != null && player.room != oracle.room)
                     awareOfPlayer = false;
@@ -283,12 +287,50 @@ public class TROracleBehavior : SSOracleBehavior {
                 if (gotHitByPlayer) {
                     gotHitByPlayer = false;
                     SwitchState(TROracleState.Welcome);
+                    return;
                 }
             }
             stateProgress++;
             idleProgress++;
         } else if (state == TROracleState.FirstEncounter_White) {
-            SetPalette(26, 23, Math.Min(1f, awareOfPlayerTime*2));
+            if (stateProgress == 0) {
+                SetPalette(26, 23, Math.Min(1f, stateTime/20f));
+                movementBehavior = MovementBehavior.Investigate;
+                if (stateTime > 640) {
+                    stateProgress = 1;
+                }
+            } else if (stateProgress == 1) {
+                movementBehavior = MovementBehavior.KeepDistance;
+                if (stateTime > 800) {
+                    if (stateTime == 830) {
+                        room.PlaySound(SoundID.SS_AI_Give_The_Mark_Telekenisis, 0.0f, 1f, 1f);
+                    }
+                    if (stateTime > 830) {
+                        Vector2 vector2 = Vector2.ClampMagnitude(oracle.room.MiddleOfTile(24, 14) - player.mainBodyChunk.pos, 40f) / 40f * (2.8f * Mathf.InverseLerp(30f, 160f, stateTime-800));
+                        player.mainBodyChunk.vel += vector2;
+                    }
+                    if (stateTime < 1100) {
+                        player.Stun(20);    
+                    }
+                    if (stateTime == 1100) {
+                        player.mainBodyChunk.vel += Custom.RNV() * 10f;
+                        player.bodyChunks[1].vel += Custom.RNV() * 10f;
+                        ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.karmaCap = 9;
+                        Bang(player.mainBodyChunk);
+                        oracle.room.PlaySound(SoundID.SS_AI_Give_The_Mark_Boom, 0.0f, 1f, 1f);
+                        ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.karma = ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.karmaCap;
+                        ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.theMark = true;
+                        player.AddFood(player.MaxFoodInStomach - player.FoodInStomach);
+                    }
+                    if (stateTime > 1100) {
+                        ((PlayerGraphics)player.graphicsModule).markAlpha = Mathf.Max(((PlayerGraphics)player.graphicsModule).markAlpha, Mathf.InverseLerp(500f, 300f, stateTime-800));
+                    }
+
+                    if (stateTime == 1200) stateProgress = 2;
+                }
+            } else if (stateProgress == 2) {
+                
+            }
         }
     }
 
@@ -319,8 +361,8 @@ public class TROracleBehavior : SSOracleBehavior {
                         newPos = true;
                     }
 
-                    if (Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) >= 210f || Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) < 10f || newPos) {
-                        Vector2 vector2 = player.DangerPos + Custom.DegToVec(investigateAngle2) * 150f;
+                    if (Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) >= 210f || Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) < 100f || newPos) {
+                        Vector2 vector2 = player.DangerPos + Custom.DegToVec(investigateAngle2) * Random.Range(110f, 200f);
                         if (oracle.room.aimap.getTerrainProximity(vector2) >= 2.0) {
                             if (pathProgression > 0.9) {
                                 if (Custom.DistLess(oracle.firstChunk.pos, vector2, 30f))
@@ -328,7 +370,28 @@ public class TROracleBehavior : SSOracleBehavior {
                                 else if (!Custom.DistLess(nextPos, vector2, 30f))
                                     SetNewDestination(vector2);
                             }
+                            nextPos = vector2;
+                        }
+                    }
+                }
+            } else if (movementBehavior == MovementBehavior.KeepDistance) {
+                if (player != null) {
+                    lookPoint = player.DangerPos;
+                    investigateAngle = 180f;
+                    if (investigateAngle2 < -90.0 || investigateAngle2 > 90.0 || oracle.room.aimap.getTerrainProximity(nextPos) < 2.0) {
+                        investigateAngle2 = Mathf.Lerp(-70f, 70f, Random.value);
+                        invstAngSpeed = Mathf.Lerp(0.4f, 0.8f, Random.value) * (Random.value < 0.5 ? -1f : 1f);
+                    }
 
+                    if (Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) < 400f) {
+                        Vector2 vector2 = player.DangerPos + Custom.DegToVec(investigateAngle2) * Random.Range(410f, 500f);
+                        if (oracle.room.aimap.getTerrainProximity(vector2) >= 2.0) {
+                            if (pathProgression > 0.9) {
+                                if (Custom.DistLess(oracle.firstChunk.pos, vector2, 30f))
+                                    floatyMovement = false;
+                                else if (!Custom.DistLess(nextPos, vector2, 30f))
+                                    SetNewDestination(vector2);
+                            }
                             nextPos = vector2;
                         }
                     }

@@ -1,5 +1,7 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -32,9 +34,30 @@ public static class Hooks {
         On.Oracle.SetUpMarbles += On_Oracle_SetUpMables;
         On.DataPearl.ApplyPalette += On_DataPearl_ApplyPalette;
         On.SuperStructureFuses.ctor += On_SuperStructureFuses_ctor;
+        On.DebugMouse.Update += On_DebugMouse_Update;
     }
 
-    
+    private static void On_DebugMouse_Update(On.DebugMouse.orig_Update orig, DebugMouse self, bool eu) {
+        orig(self, eu);
+        if (!self.room.readyForAI || !self.room.BeingViewed) return;
+        string text = self.label.text;
+        TROracle? oracle = null;
+        foreach (var i in self.room.physicalObjects) {
+            if (oracle is not null) break;
+            foreach (var j in i) {
+                if (j is TROracle o) {
+                    oracle = o;
+                    break;
+                }
+            }
+        }
+
+        if (oracle is null) return;
+        text += $"\n== Oracle state==\n{oracle.behavior.state}\ntime: {oracle.behavior.stateTime} ({oracle.behavior.stateSwitchTime})\nprogress: {oracle.behavior.stateProgress}";
+        self.label.text = text;
+        self.label2.text = text;
+    }
+
 
     public static void Unapply() {
         On.Room.ReadyForAI -= On_Room_ReadyForAI;

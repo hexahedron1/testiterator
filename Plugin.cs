@@ -16,7 +16,7 @@ sealed class Plugin : BaseUnityPlugin
     private static bool IsInit;
     public const string GUID = "hexahedron1.testiterator";
     public const string Name = "Test iterator";
-    public const string Version = "0.2.9"; // TODO: version
+    public const string Version = "0.2.14"; // TODO: version
     public void OnEnable()
     {
         Logger = base.Logger;
@@ -35,6 +35,6 @@ sealed class Plugin : BaseUnityPlugin
         IsInit = true;
 
         // Initialize assets, your mod config, and anything that uses RainWorld here
-        Logger.LogDebug("Hello world!");
+        Logger.LogInfo(Version);
     }
 }
