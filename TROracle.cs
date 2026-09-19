@@ -1,8 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
-using TestIterator;
 using MoreSlugcats;
 using RWCustom;
 using UnityEngine;
@@ -112,6 +110,7 @@ public class TROracleBehavior : SSOracleBehavior {
         }
     }
 
+    private TRConversationBehavior conversationBehavior;
     private bool cantFuckingWork;
     private const bool debug = false;
     PebblesPearl MakePearl(PhysicalObject orbitObj, Vector2 pos, int circle, float dist, int color, int? label = null) {
@@ -167,6 +166,7 @@ public class TROracleBehavior : SSOracleBehavior {
         public static readonly TROracleState InspectObject = new("InspectObject", true);
         public static readonly TROracleState SMThrowOut = new("SMThrowOut", true);
         public static readonly TROracleState Welcome = new("Welcome", true);
+        public static readonly TROracleState Error = new("Error", true);
     }
 
     public TROracleState state;
@@ -203,7 +203,6 @@ public class TROracleBehavior : SSOracleBehavior {
         stateSwitchTime = oracle.room.game.timeInRegionThisCycle;
         // filtering
         if (newState == TROracleState.Welcome && !oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Contains("TR_MetPlayer")) newState = GetFirstEncounterState(player.SlugCatClass) ?? TROracleState.FirstEncounter_Unknown;
-        
         state = newState;
         Plugin.Logger.LogInfo("New state: " + state);
         if (state.value.StartsWith("FirstEncounter")) {
@@ -218,7 +217,38 @@ public class TROracleBehavior : SSOracleBehavior {
 
         if (state == TROracleState.Idle) {
             UnlockShortcuts();
+            if (oracle.room.gravity != 0f) {
+                oracle.setGravity(0f);
+                oracle.room.gravity = 0f;
+                oracle.room.PlaySound(SoundID.Broken_Anti_Gravity_Switch_On);
+            }
+
+            movementBehavior = MovementBehavior.Idle;
         }
+
+        if (state == TROracleState.Error) {
+            conversation.Interrupt("..!", 0);
+            oracle.setGravity(1f);
+            oracle.room.gravity = 1f;
+            oracle.room.PlaySound(SoundID.Broken_Anti_Gravity_Switch_Off);
+        }
+    }
+
+    private TROracleState savedState;
+    private int savedStateProgress;
+    private int savedStateSwitchTime;
+    private int stateSaveTime;
+    public void SaveState() {
+        savedState = state;
+        savedStateProgress = stateProgress;
+        savedStateSwitchTime = stateSwitchTime;
+        stateSaveTime = oracle.room.game.timeInRegionThisCycle;
+    }
+
+    public void LoadState() {
+        state = savedState;
+        stateProgress = savedStateProgress ;
+        stateSwitchTime = savedStateSwitchTime + (oracle.room.game.timeInRegionThisCycle - stateSaveTime);
     }
 
     private bool awareOfPlayer;
@@ -292,6 +322,28 @@ public class TROracleBehavior : SSOracleBehavior {
             }
             stateProgress++;
             idleProgress++;
+        } else if (state == TROracleState.Error) {
+            if (stateTime < 200f) {
+                SetPalette(26, 10, Math.Min(1f, stateTime / 20f));
+                foreach (var light in room.lightSources) {
+                    light.alpha = 1-Math.Min(1f, stateTime / 20f);
+                }
+            } else {
+                if (stateTime == 200) {
+                    oracle.setGravity(0f);
+                    oracle.room.gravity = 0f;
+                    oracle.room.PlaySound(SoundID.Broken_Anti_Gravity_Switch_On);
+                }
+                foreach (var light in room.lightSources) {
+                    light.alpha = Math.Min(1f, (stateTime-200) / 20f);
+                }
+                SetPalette(10, 26, Math.Min(1f, (stateTime-200) / 20f));
+                if (stateTime == 240) {
+                    movementBehavior = MovementBehavior.KeepDistance;
+                    conversation.Interrupt("You need to go.", 0);
+                    conversation.Destroy();
+                }
+            }
         } else if (state == TROracleState.FirstEncounter_White) {
             if (stateProgress == 0) {
                 SetPalette(26, 23, Math.Min(1f, stateTime/20f));
@@ -305,7 +357,7 @@ public class TROracleBehavior : SSOracleBehavior {
                     if (stateTime == 830) {
                         room.PlaySound(SoundID.SS_AI_Give_The_Mark_Telekenisis, 0.0f, 1f, 1f);
                     }
-                    if (stateTime > 830) {
+                    if (stateTime is > 830 and < 1100) {
                         Vector2 vector2 = Vector2.ClampMagnitude(oracle.room.MiddleOfTile(24, 14) - player.mainBodyChunk.pos, 40f) / 40f * (2.8f * Mathf.InverseLerp(30f, 160f, stateTime-800));
                         player.mainBodyChunk.vel += vector2;
                     }
@@ -326,14 +378,31 @@ public class TROracleBehavior : SSOracleBehavior {
                         ((PlayerGraphics)player.graphicsModule).markAlpha = Mathf.Max(((PlayerGraphics)player.graphicsModule).markAlpha, Mathf.InverseLerp(500f, 300f, stateTime-800));
                     }
 
-                    if (stateTime == 1200) stateProgress = 2;
+                    if (stateTime == 1200) {
+                        stateProgress = 2;
+                        movementBehavior = MovementBehavior.Talk;
+                        InitiateConvo(Conversations.TR_MeetWhite);
+                    }
                 }
-            } else if (stateProgress == 2) {
-                
+            } else if (stateProgress == 2 && conversation.slatedForDeletion) {
+                SwitchState(TROracleState.Idle);
+                oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Add("TR_MetPlayer");
+                return;
             }
         }
     }
 
+    private class TRConversationBehavior(SSOracleBehavior owner, SubBehavior.SubBehavID id, Conversation.ID convoID) : ConversationBehavior(owner, id, convoID) { }
+    private void InitiateConvo(Conversation.ID convoId) {
+        if (conversation != null) {
+            conversation.Interrupt("...", 0);
+            conversation.Destroy();
+        }
+        var convBehav = new TRConversationBehavior(this, SubBehavior.SubBehavID.General, convoId);
+        conversation = new PebblesConversation(this, convBehav, convoId, dialogBox);
+        if (ModManager.MSC) conversation.colorMode = true;
+    }
+    
     private float investigateAngle2;
     public override void Update(bool eu) {
         if (cantFuckingWork) return;
@@ -396,7 +465,29 @@ public class TROracleBehavior : SSOracleBehavior {
                         }
                     }
                 }
+            }else if (movementBehavior == MovementBehavior.Talk) {
+                if (player != null) {
+                    lookPoint = player.DangerPos;
+                    investigateAngle = 180f;
+                    if (investigateAngle2 < -90.0 || investigateAngle2 > 90.0 || oracle.room.aimap.getTerrainProximity(nextPos) < 2.0) {
+                        investigateAngle2 = Mathf.Lerp(-70f, 70f, Random.value);
+                        invstAngSpeed = Mathf.Lerp(0.4f, 0.8f, Random.value) * (Random.value < 0.5 ? -1f : 1f);
+                    }
+                    if (Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) < 200f || Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) > 310f) {
+                        Vector2 vector2 = player.DangerPos + Custom.DegToVec(investigateAngle2) * Random.Range(210f, 300f);
+                        if (oracle.room.aimap.getTerrainProximity(vector2) >= 2.0) {
+                            if (pathProgression > 0.9) {
+                                if (Custom.DistLess(oracle.firstChunk.pos, vector2, 30f))
+                                    floatyMovement = false;
+                                else if (!Custom.DistLess(nextPos, vector2, 30f))
+                                    SetNewDestination(vector2);
+                            }
+                            nextPos = vector2;
+                        }
+                    }
+                }
             }
+            conversation?.Update();
             if (awareOfPlayer)
                 awareOfPlayerTime += 0.025f;
             currentGetTo = Custom.Bezier(lastPos, ClampVectorInRoom(lastPos + lastPosHandle), nextPos, ClampVectorInRoom(nextPos + nextPosHandle), pathProgression);
@@ -431,6 +522,8 @@ public class TROracleBehavior : SSOracleBehavior {
             timeSinceLastError = 0;
             Plugin.Logger.LogError("ERROR");
             Plugin.Logger.LogError(e);
+            SaveState();
+            SwitchState(TROracleState.Error);
         }
 
         tikk++;

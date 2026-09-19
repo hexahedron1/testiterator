@@ -1,5 +1,5 @@
 Subergion: Primary Power Rail
-Room Setting Templates: Wall, Wall-inside, Underhang, Interior, MemCon, Pipes, Archive, Intake
+Room Setting Templates: Wall, Wall-inside, Underhang, Interior, MemCon, Pipes, Archive, Intake, Intake-inside
 Subregion: Test Iterator
 Subregion: The Facade
 Subregion: Exhaust System

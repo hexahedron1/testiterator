@@ -23,6 +23,22 @@ public static class NewOracleID {
     }
 }
 
+public static class Conversations {
+    public static Conversation.ID TR_MeetWhite = new(nameof(TR_MeetWhite), true);
+    public static Conversation.ID TR_WelcomeBack = new(nameof(TR_WelcomeBack), true);
+
+    static void Unregister(Conversation.ID id) {
+        if (id == null)
+            return;
+        id.Unregister();
+        id = null;
+    }
+    internal static void UnregisterValues() {
+        Unregister(TR_MeetWhite);
+        Unregister(TR_WelcomeBack);
+    }
+}
+
 public static class Hooks {
     public static void Apply() {
         On.Room.ReadyForAI += On_Room_ReadyForAI;
@@ -37,6 +53,29 @@ public static class Hooks {
         On.SuperStructureFuses.ctor += On_SuperStructureFuses_ctor;
         On.DebugMouse.Update += On_DebugMouse_Update;
         //On.Room.WaterFluxController.waterFluxState += On_Room_WaterFluxController_WaterFluxState;
+        On.SSOracleBehavior.PebblesConversation.AddEvents += On_SSOracleBehavior_PebblesConversation_AddEvents;
+    }
+
+    private static void On_SSOracleBehavior_PebblesConversation_AddEvents(On.SSOracleBehavior.PebblesConversation.orig_AddEvents orig, SSOracleBehavior.PebblesConversation self) {
+        if (self.id == Conversations.TR_MeetWhite) {
+            if (!self.owner.playerEnteredWithMark)
+                self.events.Add(new Conversation.TextEvent(self, 0, "Can you understand me?", 0));
+            self.events.Add(new Conversation.TextEvent(self, 40, "Hello there, little thing.", 0));
+            self.events.Add(new Conversation.TextEvent(self, 0, "You must be native to the surface jungle near Five Pebbles.", 0));
+            self.events.Add(new Conversation.TextEvent(self, 0, "What brings you here, then? I can't offer much to you that you would find useful.", 0));
+            self.events.Add(new Conversation.TextEvent(self, 0, "Do you perhaps, seek salvation?", 0));
+            self.events.Add(new Conversation.TextEvent(self, 20, self.owner.playerEnteredWithMark
+                    ? "In that case, you already have what you need." 
+                    : "In that case, i have given you what is required.", 
+                0));
+            self.events.Add(new Conversation.TextEvent(self, 0, "However, to properly utilize such gift, you must find the appropriate location to do so.<LINE>And to my knowledge, there are none nearby.", 0));
+            self.events.Add(new Conversation.TextEvent(self, 0, "So, I can't direct you to a specific goal, but only give a general description of such place:", 0));
+            self.events.Add(new Conversation.TextEvent(self, 0, "Find a place which goes deep down, far below the ground level, where the rock gives way and begins the void sea.<LINE>The mark you have will let you pass through.", 0));
+            self.events.Add(new Conversation.TextEvent(self, 0, "So, unless you have something interesting to show me, it is time for you to go.", 0));
+            self.events.Add(new Conversation.TextEvent(self, 0, "Don't hesitate to return with something, through. I would like some company.", 0));
+            return;
+        }
+        orig(self);
     }
 
     public static void Unapply() {
@@ -48,6 +87,7 @@ public static class Hooks {
         IL.Oracle.OracleArm.Joint.Update -= IL_Joint_Update;
         IL.Oracle.OracleArm.Update -= IL_OracleArm_Update;
         NewOracleID.UnregisterValues();
+        Conversations.UnregisterValues();
         On.Oracle.SetUpMarbles -= On_Oracle_SetUpMables;
         On.DataPearl.ApplyPalette -= On_DataPearl_ApplyPalette;
         On.SuperStructureFuses.ctor -= On_SuperStructureFuses_ctor;

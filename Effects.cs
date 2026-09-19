@@ -16,9 +16,7 @@ public static class Effects {
             return new CycleDrain(_room, _data);
         }
         public class CycleDrainMax(PlacedObject owner) : Pom.Pom.ManagedData(owner, null);
-
         private EffectExtraData data;
-        
         public CycleDrain(Room room, EffectExtraData data) {
             this.data = data;
             endLevel = room.waterObject.originalWaterLevel;
