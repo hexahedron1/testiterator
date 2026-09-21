@@ -1,0 +1,9 @@
+0-TR_Schematic
+
+Oh, interesting! This is a blueprint of an iterator cooling system - one I am not familiar with.
+
+This design is made for constant steam output, in addition to the cooling cycle design most of us employ.
+
+I would imagine this is only needed if an iterator is designed to run at a higher capacity than normal.
+
+I think i can vaguely recall an iterator in our local group talking about something like that,<LINE>but my memory won't let remember exactly who and why...

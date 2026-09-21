@@ -1,0 +1,18 @@
+0-TR-TR_Schematic
+
+This is a schematic for my constant-output exhaust system.
+
+Have you been there? Actually, since you're here i'd imagine you haven't...<LINE>That place is a steaming hellhole.
+
+20 : 0 : I am not a traditional iterator model - my creators built me to test an experimental technology<LINE>that allows for an increased processing capacity.
+
+This, however, increases the heat output of my processes dramatically,<LINE>and the traditional cooling cycle paradigm is not sufficient to keep me from overheating.
+
+This resulted in the need for an additional baseline steam output rate. Which in turn results in<LINE>the clouds being constantly saturated, and thus there is constant rainfall in the vicinity<LINE>of my structure. I'm sure you've noticed that on your way here.
+
+All of that also ends in the underside of my structure being completely sterile -<LINE>my overseers have not yet reported any lifeform to survive in such conditions.
+
+There's one, very big, downside, though - the need to always exhale steam<LINE>necessitates a much higher water intake, which in turn creates the need for more,<LINE>larger pipes, which cannot be fully embedded in the outer shell of the main structure<LINE>and its supports, and that makes them much more prone to corrosion,<LINE>and thus leakage and potential ruptures.
+
+Some of the pipes at my foundation already began to leak.
+0 : 20 : Not sure if it'll take much time for enough of them to pop for me to be starved<LINE>of water...

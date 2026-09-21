@@ -78,6 +78,26 @@ public class TROracle : Oracle {
 
 
 public class TROracleBehavior : SSOracleBehavior {
+
+    public class TROracleState(string value, bool register = false) : ExtEnum<TROracleState>(value, register) {
+        public static readonly TROracleState Idle = new("Idle", true);
+        public static readonly TROracleState FirstEncounter_Spear = new("FirstEncounter_Spear", true);
+        public static readonly TROracleState FirstEncounter_Arti = new("FirstEncounter_Arti", true);
+        public static readonly TROracleState FirstEncounter_Red = new("FirstEncounter_Red", true);
+        public static readonly TROracleState FirstEncounter_Gourm = new("FirstEncounter_Gourm", true);
+        public static readonly TROracleState FirstEncounter_White = new("FirstEncounter_White", true);
+        public static readonly TROracleState FirstEncounter_Yellow = new("FirstEncounter_Yellow", true);
+        public static readonly TROracleState FirstEncounter_Riv = new("FirstEncounter_Riv", true);
+        public static readonly TROracleState FirstEncounter_Saint = new("FirstEncounter_Saint", true);
+        public static readonly TROracleState FirstEncounter_Unknown = new("FirstEncounter_Unknown", true);
+        public static readonly TROracleState FirstEncounter_Inv = new("FirstEncounter_Inv", true);
+        public static readonly TROracleState InspectObject = new("InspectObject", true);
+        public static readonly TROracleState SMThrowOut = new("SMThrowOut", true);
+        public static readonly TROracleState Welcome = new("Welcome", true);
+        public static readonly TROracleState Error = new("Error", true);
+    }
+    private class TRConversationBehavior(SSOracleBehavior owner, SubBehavior.SubBehavID id, Conversation.ID convoID) : ConversationBehavior(owner, id, convoID) { }
+
     private GlyphLabel testLabel;
     private GlyphLabel errorLabel;
     private GlyphLabel debugLabel_currentGetTo;
@@ -85,10 +105,7 @@ public class TROracleBehavior : SSOracleBehavior {
     private GlyphLabel debugLabel_lastPos;
     internal bool gotHitByPlayer;
     public TROracleBehavior(TROracle oracle) : base(oracle) {
-        try {
-            currSubBehavior.Deactivate();
-            allSubBehaviors.RemoveAt(allSubBehaviors.Count - 1);
-            allSubBehaviors.Add(currSubBehavior = new TRNoSubBehavior(this));
+        try {   
             movementBehavior = MovementBehavior.Idle;
             if (debug) {
                 oracle.room.AddObject(testLabel = new(new Vector2(240f, 600f),
@@ -151,23 +168,6 @@ public class TROracleBehavior : SSOracleBehavior {
         
     }
 
-    public class TROracleState(string value, bool register = false) : ExtEnum<TROracleState>(value, register) {
-        public static readonly TROracleState Idle = new("Idle", true);
-        public static readonly TROracleState FirstEncounter_Spear = new("FirstEncounter_Spear", true);
-        public static readonly TROracleState FirstEncounter_Arti = new("FirstEncounter_Arti", true);
-        public static readonly TROracleState FirstEncounter_Red = new("FirstEncounter_Red", true);
-        public static readonly TROracleState FirstEncounter_Gourm = new("FirstEncounter_Gourm", true);
-        public static readonly TROracleState FirstEncounter_White = new("FirstEncounter_White", true);
-        public static readonly TROracleState FirstEncounter_Yellow = new("FirstEncounter_Yellow", true);
-        public static readonly TROracleState FirstEncounter_Riv = new("FirstEncounter_Riv", true);
-        public static readonly TROracleState FirstEncounter_Saint = new("FirstEncounter_Saint", true);
-        public static readonly TROracleState FirstEncounter_Unknown = new("FirstEncounter_Unknown", true);
-        public static readonly TROracleState FirstEncounter_Inv = new("FirstEncounter_Inv", true);
-        public static readonly TROracleState InspectObject = new("InspectObject", true);
-        public static readonly TROracleState SMThrowOut = new("SMThrowOut", true);
-        public static readonly TROracleState Welcome = new("Welcome", true);
-        public static readonly TROracleState Error = new("Error", true);
-    }
 
     public TROracleState state;
     public int stateProgress;
@@ -392,8 +392,7 @@ public class TROracleBehavior : SSOracleBehavior {
         }
     }
 
-    private class TRConversationBehavior(SSOracleBehavior owner, SubBehavior.SubBehavID id, Conversation.ID convoID) : ConversationBehavior(owner, id, convoID) { }
-    private void InitiateConvo(Conversation.ID convoId) {
+        private void InitiateConvo(Conversation.ID convoId) {
         if (conversation != null) {
             conversation.Interrupt("...", 0);
             conversation.Destroy();
@@ -541,25 +540,6 @@ public class TROracleBehavior : SSOracleBehavior {
 
     public new void Move() {
         
-    }
-
-    public class TRNoSubBehavior(SSOracleBehavior ow) : NoSubBehavior(ow)
-    {
-        public float PartialGravity;
-        public bool SeenPlayer;
-        public bool LockPaths;
-        public bool GravOn;
-
-        public override void Update() {
-            if (LockPaths)
-                owner.LockShortcuts();
-            else
-                owner.UnlockShortcuts();
-        }
-
-        public override float LowGravity => !GravOn ? -1f : PartialGravity;
-
-        public override bool Gravity => GravOn;
     }
 }
 
