@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using MoreSlugcats;
@@ -91,7 +93,7 @@ public class TROracleBehavior : SSOracleBehavior {
         public static readonly TROracleState FirstEncounter_Saint = new("FirstEncounter_Saint", true);
         public static readonly TROracleState FirstEncounter_Unknown = new("FirstEncounter_Unknown", true);
         public static readonly TROracleState FirstEncounter_Inv = new("FirstEncounter_Inv", true);
-        public static readonly TROracleState InspectObject = new("InspectObject", true);
+        public static readonly TROracleState InspectPearl = new("InspectObject", true);
         public static readonly TROracleState SMThrowOut = new("SMThrowOut", true);
         public static readonly TROracleState Welcome = new("Welcome", true);
         public static readonly TROracleState Error = new("Error", true);
@@ -214,7 +216,6 @@ public class TROracleBehavior : SSOracleBehavior {
             LockShortcuts();
             TurnOffSSMusic(true);
         }
-
         if (state == TROracleState.Idle) {
             UnlockShortcuts();
             if (oracle.room.gravity != 0f) {
@@ -225,12 +226,15 @@ public class TROracleBehavior : SSOracleBehavior {
 
             movementBehavior = MovementBehavior.Idle;
         }
-
         if (state == TROracleState.Error) {
             conversation.Interrupt("..!", 0);
             oracle.setGravity(1f);
             oracle.room.gravity = 1f;
             oracle.room.PlaySound(SoundID.Broken_Anti_Gravity_Switch_Off);
+        }
+        if (state == TROracleState.InspectPearl) {
+            LockShortcuts();
+            conversation.Interrupt("I'll take a look", 0);
         }
     }
 
@@ -260,7 +264,8 @@ public class TROracleBehavior : SSOracleBehavior {
                 t.ChangeBothPalettes(palA, palB, blend);
         }
     }
-
+    public Queue<DataPearl> pearlsToLookAt = new();
+    [CanBeNull] private DataPearl lookAtPearl;
     private int idleProgress;
     void FiniteStateMachine(Room room) {
         if (state == TROracleState.Idle) {
@@ -295,8 +300,6 @@ public class TROracleBehavior : SSOracleBehavior {
                     floatyMovement = true;
                     if (Mathf.Approximately(pathProgression, 1f) && Random.value < 0.05) investigateMarble = null;
                 }
-
-                
                 if (debug) {
                     debugLabel_currentGetTo.pos = currentGetTo;
                     debugLabel_lastPos.pos = lastPos;
@@ -306,7 +309,16 @@ public class TROracleBehavior : SSOracleBehavior {
                         testLabel.visibleGlyphs++;
                         oracle.room.PlaySound(SoundID.SS_AI_Text);
                     }
-                } 
+                }
+                foreach (var objectObject in room.physicalObjects) {
+                    foreach (var obj in objectObject) {
+                        if (obj is not DataPearl pearl || pearl.AbstractPearl.dataPearlType == DataPearl.AbstractDataPearl.DataPearlType.PebblesPearl || obj.grabbedBy.Count > 0 || pearlsToLookAt.Contains(obj)) continue;
+                        pearlsToLookAt.Enqueue(pearl);
+                    }
+                }
+                if (pearlsToLookAt.Count > 0) {
+                    SwitchState(TROracleState.InspectPearl);
+                }
             } else if (movementBehavior == MovementBehavior.Meditate) {
                 lookPoint = oracle.bodyChunks[0].pos;
                 currentGetTo = new Vector2(480, 350);
@@ -389,10 +401,27 @@ public class TROracleBehavior : SSOracleBehavior {
                 oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Add("TR_MetPlayer");
                 return;
             }
+        } else if (state == TROracleState.InspectPearl) {
+            if (pearlsToLookAt.Count == 0 && lookAtPearl is null) SwitchState(TROracleState.Idle);
+            movementBehavior = NewExtEnums.ReadPearl;
+            lookAtPearl ??= pearlsToLookAt.Dequeue();
+            if (lookAtPearl is null) return;
+            lookPoint = lookAtPearl.firstChunk.pos;
+            // shamelessly stolen from PebblesPearl
+            lookAtPearl.firstChunk.vel *= Custom.LerpMap(lookAtPearl.firstChunk.vel.magnitude, 1f, 6f, 0.999f, 0.9f);
+            lookAtPearl.firstChunk.vel += Vector2.ClampMagnitude(oracle.firstChunk.pos - lookAtPearl.firstChunk.pos, 100f) / 100f * (float) (0.4000000059604645 * (1.0 - room.gravity)); // i'm keeping the floating point error from the decompiler for shits and giggles
+            if (stateProgress == 0 && Custom.DistLess(lookAtPearl.firstChunk.pos, oracle.firstChunk.pos, 0)) {
+                stateProgress = 1;
+                InitiateConvo(Conversations.TR_PearlIntro);
+            } else if (stateProgress == 1 && conversation.slatedForDeletion) {
+                stateProgress = 2;
+                InitiateConvo(Conversation.DataPearlToConversation(lookAtPearl.AbstractPearl.dataPearlType));
+                // magic pearl readment
+            }
         }
     }
 
-        private void InitiateConvo(Conversation.ID convoId) {
+    private void InitiateConvo(Conversation.ID convoId) {
         if (conversation != null) {
             conversation.Interrupt("...", 0);
             conversation.Destroy();
@@ -464,7 +493,7 @@ public class TROracleBehavior : SSOracleBehavior {
                         }
                     }
                 }
-            }else if (movementBehavior == MovementBehavior.Talk) {
+            } else if (movementBehavior == MovementBehavior.Talk) {
                 if (player != null) {
                     lookPoint = player.DangerPos;
                     investigateAngle = 180f;
@@ -485,6 +514,9 @@ public class TROracleBehavior : SSOracleBehavior {
                         }
                     }
                 }
+            } else if (movementBehavior == NewExtEnums.ReadPearl) {
+                if (Custom.Dist(nextPos, new Vector2(480, 350)) > 20)
+                    SetNewDestination(new(480, 350));
             }
             conversation?.Update();
             if (awareOfPlayer)
