@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -216,6 +215,12 @@ public class TROracleBehavior : SSOracleBehavior {
             LockShortcuts();
             TurnOffSSMusic(true);
         }
+
+        if (state == TROracleState.Welcome) {
+            awareOfPlayer = true;
+            InitiateConvo(Conversations.TR_WelcomeBack);
+            SwitchState(TROracleState.Idle);
+        }
         if (state == TROracleState.Idle) {
             UnlockShortcuts();
             if (oracle.room.gravity != 0f) {
@@ -410,15 +415,22 @@ public class TROracleBehavior : SSOracleBehavior {
             // shamelessly stolen from PebblesPearl
             lookAtPearl.firstChunk.vel *= Custom.LerpMap(lookAtPearl.firstChunk.vel.magnitude, 1f, 6f, 0.999f, 0.9f);
             lookAtPearl.firstChunk.vel += Vector2.ClampMagnitude(oracle.firstChunk.pos - lookAtPearl.firstChunk.pos, 100f) / 100f * (float) (0.4000000059604645 * (1.0 - room.gravity)); // i'm keeping the floating point error from the decompiler for shits and giggles
-            if (stateProgress == 0 && Custom.DistLess(lookAtPearl.firstChunk.pos, oracle.firstChunk.pos, 0)) {
+            if (stateProgress == 0 && Custom.DistLess(lookAtPearl.firstChunk.pos, oracle.firstChunk.pos, 40)) {
                 stateProgress = 1;
                 InitiateConvo(Conversations.TR_PearlIntro);
             } else if (stateProgress == 1 && conversation.slatedForDeletion) {
                 stateProgress = 2;
+                // this is stupid but i don't have time for a better solution
+                /*if (CustomRegions.Collectables.PearlData.CustomDataPearlsList.TryGetValue(
+                        lookAtPearl.AbstractPearl.dataPearlType, out Structs.CustomPearl porl)) {
+                    
+                }*/
+                
                 InitiateConvo(Conversation.DataPearlToConversation(lookAtPearl.AbstractPearl.dataPearlType));
-                // magic pearl readment
+            } else if (stateProgress == 2 && conversation.slatedForDeletion) {
+                stateProgress = 0;
             }
-        }
+        } else if (state == TROracleState.Welcome) SwitchState(TROracleState.Idle);
     }
 
     private void InitiateConvo(Conversation.ID convoId) {
