@@ -1,6 +1,7 @@
 Template: tr_settingstemplate_underhang
 DangerType: Thunder
+Palette: 17
 EffectColorB: 7
 Effects: HeatWave-0.326087-243-32, 
 PlacedObjects: LightFixture><1199.388><1120.011><RedLight~17.32051~-10~42, LightFixture><1922.425><1339.097><RedLight~17.32051~-10~57, LightFixture><828.8187><1412.691><RedLight~17.32051~-10~86, LightFixture><124.1705><1171.421><RedLight~82.2616~129.0474~56, LightFixture><104.5535><521.8106><RedLight~17.32051~-10~46, LightFixture><1106.189><559.8113><RedLight~-358.7971~-34.81311~9, LightFixture><2102.886><265.178><RedLight~17.32051~-10~44, LightFixture><2107.307><699.5526><RedLight~17.32051~-10~74, LightFixture><830.3724><793.8938><RedLight~17.32051~-10~60, LightFixture><1929.063><59.9343><RedLight~17.32051~-10~45, DataPearl><964.2339><1370.715><-54.00378~-167.0019~0~0~TR_Schematic~0, SteamPipe><122.1921><1127.691><75~0, 
-FadePalette: 17, 0.9239131, 0.9239131, 0.9239131, 0.9239131
+FadePalette: 36, 0.07608695, 0.04347826, 0.04347826, 0.02173913

@@ -61,8 +61,15 @@ public static class Hooks {
         On.DataPearl.ApplyPalette += On_DataPearl_ApplyPalette;
         On.SuperStructureFuses.ctor += On_SuperStructureFuses_ctor;
         On.DebugMouse.Update += On_DebugMouse_Update;
+        On.RoomCamera.ModifyEffectColorA += On_RoomCamera_ModifyEffectColorA;
         //On.Room.WaterFluxController.waterFluxState += On_Room_WaterFluxController_WaterFluxState;
         On.SSOracleBehavior.PebblesConversation.AddEvents += On_SSOracleBehavior_PebblesConversation_AddEvents;
+    }
+
+    private static Color[] On_RoomCamera_ModifyEffectColorA(On.RoomCamera.orig_ModifyEffectColorA orig, RoomCamera self, Color[] colors) {
+        Color[] col = orig(self, colors);
+        // todo actually do the thing lol
+        return col;
     }
 
     private static void On_SSOracleBehavior_PebblesConversation_AddEvents(On.SSOracleBehavior.PebblesConversation.orig_AddEvents orig, SSOracleBehavior.PebblesConversation self) {

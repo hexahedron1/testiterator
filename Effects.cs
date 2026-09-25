@@ -9,6 +9,8 @@ public static class Effects {
         EffectDefinitionBuilder cycleDrainDefBuilder = new("CycleDrain");
         cycleDrainDefBuilder.SetUADFactory(CycleDrain.UADFactory).SetCategory("Test Iterator").Register();
         Pom.Pom.RegisterEmptyObjectType<CycleDrain.CycleDrainMax, Pom.Pom.ManagedRepresentation>("CycleDrainMax", "Test Iterator");
+        EffectDefinitionBuilder effectColorFlickerBuilder = new("EffectColorFlicker");
+        cycleDrainDefBuilder.AddBoolField("useColorB", false, "Use color B").SetUADFactory(EffectColorFlicker.UADFactory).SetCategory("Test Iterator").Register();
     }
 
     public class CycleDrain : UpdatableAndDeletable {
@@ -37,6 +39,17 @@ public static class Effects {
             if (room?.waterObject is null) return;
             room.waterObject.originalWaterLevel = Mathf.Lerp(startLevel, endLevel, room.world.rainCycle.CycleProgression);
             Plugin.Logger.LogInfo(room.waterObject.originalWaterLevel);
+        }
+    }
+
+    public class EffectColorFlicker : UpdatableAndDeletable {
+        public static UpdatableAndDeletable UADFactory(Room _room, EffectExtraData _data, bool firstTimeRealized) {
+            return new EffectColorFlicker(_room, _data);
+        }
+        private EffectExtraData data;
+        public static RoomSettings.RoomEffect.Type Type = new("EffectColorFlicker");
+        public EffectColorFlicker(Room room, EffectExtraData data) {
+            this.data = data;
         }
     }
 }
