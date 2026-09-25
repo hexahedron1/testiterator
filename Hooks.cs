@@ -109,7 +109,7 @@ public static class Hooks {
                     2 => "This is a pearl. I'll read it.",
                     _ => "It's a data pearl, do you want me to read it?"
                 }, 0));
-                if (((TROracleBehavior)self.owner).pearlsToLookAt.Count > 1)
+                if (((TROracleBehavior)self.owner).shitToLookAt.Count > 1)
                     self.events.Add(new Conversation.TextEvent(self, 0, "We'll look at the others as well.", 0));
                 return;
             }

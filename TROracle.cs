@@ -10,6 +10,7 @@ using Random = UnityEngine.Random;
 namespace TestIterator;
 
 public class TROracle : Oracle {
+    public ProjectionCircle objectCircle = new(new Vector2(0f, 0f), 15f, 3f);
     public TROracle(AbstractPhysicalObject apo, Room room) : base(apo, room) {
         room.AddObject(myScreen = new OracleProjectionScreen(room, oracleBehavior = new TROracleBehavior(this)));
         marbles = [];
@@ -92,7 +93,7 @@ public class TROracleBehavior : SSOracleBehavior {
         public static readonly TROracleState FirstEncounter_Saint = new("FirstEncounter_Saint", true);
         public static readonly TROracleState FirstEncounter_Unknown = new("FirstEncounter_Unknown", true);
         public static readonly TROracleState FirstEncounter_Inv = new("FirstEncounter_Inv", true);
-        public static readonly TROracleState InspectPearl = new("InspectObject", true);
+        public static readonly TROracleState InspectObject = new("InspectObject", true);
         public static readonly TROracleState SMThrowOut = new("SMThrowOut", true);
         public static readonly TROracleState Welcome = new("Welcome", true);
         public static readonly TROracleState Error = new("Error", true);
@@ -198,6 +199,7 @@ public class TROracleBehavior : SSOracleBehavior {
         return null;
     }
 
+    private TROracle trOracle => (TROracle)oracle;
     public void SwitchState(TROracleState newState) {
         var oldState = state;
         stateProgress = 0;
@@ -206,6 +208,7 @@ public class TROracleBehavior : SSOracleBehavior {
         if (newState == TROracleState.Welcome && !oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Contains("TR_MetPlayer")) newState = GetFirstEncounterState(player.SlugCatClass) ?? TROracleState.FirstEncounter_Unknown;
         state = newState;
         Plugin.Logger.LogInfo("New state: " + state);
+        trOracle.objectCircle.pos = new Vector2(0, 0);
         if (state.value.StartsWith("FirstEncounter")) {
             awareOfPlayer = true;
             awareOfPlayerTime = 0f;
@@ -237,7 +240,7 @@ public class TROracleBehavior : SSOracleBehavior {
             oracle.room.gravity = 1f;
             oracle.room.PlaySound(SoundID.Broken_Anti_Gravity_Switch_Off);
         }
-        if (state == TROracleState.InspectPearl) {
+        if (state == TROracleState.InspectObject) {
             LockShortcuts();
             conversation.Interrupt("I'll take a look", 0);
         }
@@ -269,10 +272,29 @@ public class TROracleBehavior : SSOracleBehavior {
                 t.ChangeBothPalettes(palA, palB, blend);
         }
     }
-    public Queue<DataPearl> pearlsToLookAt = new();
-    [CanBeNull] private DataPearl lookAtPearl;
+
+    public Queue<PhysicalObject> shitToLookAt = [];
+    [CanBeNull] private PhysicalObject interestingShit;
     private int idleProgress;
+    private List<PhysicalObject> shitThatThePlayerHeld = [];
     void FiniteStateMachine(Room room) {
+        if ((state == TROracleState.Idle && movementBehavior == MovementBehavior.Idle) ||
+            state == TROracleState.InspectObject) {
+            foreach (var objectObject in room.physicalObjects) {
+                foreach (var obj in objectObject) {
+                    foreach (var grasp in obj.grabbedBy) {
+                        if (!shitThatThePlayerHeld.Contains(obj) && grasp.grabber is Player)
+                            shitThatThePlayerHeld.Add(obj);
+                    }
+                }
+            }
+
+            foreach (var shit in shitThatThePlayerHeld.ToList()) {
+                if (shit.grabbedBy.Count != 0) continue;
+                shitToLookAt.Enqueue(shit);
+                shitThatThePlayerHeld.Remove(shit);
+            }
+        }
         if (state == TROracleState.Idle) {
             SetPalette(23, 26, Math.Min(1f, stateProgress/20f));
             if (movementBehavior == MovementBehavior.Idle) {
@@ -305,6 +327,11 @@ public class TROracleBehavior : SSOracleBehavior {
                     floatyMovement = true;
                     if (Mathf.Approximately(pathProgression, 1f) && Random.value < 0.05) investigateMarble = null;
                 }
+
+                if (shitToLookAt.Count > 0) {
+                    SwitchState(TROracleState.InspectObject);
+                    return;
+                }
                 if (debug) {
                     debugLabel_currentGetTo.pos = currentGetTo;
                     debugLabel_lastPos.pos = lastPos;
@@ -314,15 +341,6 @@ public class TROracleBehavior : SSOracleBehavior {
                         testLabel.visibleGlyphs++;
                         oracle.room.PlaySound(SoundID.SS_AI_Text);
                     }
-                }
-                foreach (var objectObject in room.physicalObjects) {
-                    foreach (var obj in objectObject) {
-                        if (obj is not DataPearl pearl || pearl.AbstractPearl.dataPearlType == DataPearl.AbstractDataPearl.DataPearlType.PebblesPearl || obj.grabbedBy.Count > 0 || pearlsToLookAt.Contains(obj)) continue;
-                        pearlsToLookAt.Enqueue(pearl);
-                    }
-                }
-                if (pearlsToLookAt.Count > 0) {
-                    SwitchState(TROracleState.InspectPearl);
                 }
             } else if (movementBehavior == MovementBehavior.Meditate) {
                 lookPoint = oracle.bodyChunks[0].pos;
@@ -362,6 +380,7 @@ public class TROracleBehavior : SSOracleBehavior {
                 }
             }
         } else if (state == TROracleState.FirstEncounter_White) {
+            investigatePos = player.DangerPos;
             if (stateProgress == 0) {
                 SetPalette(26, 23, Math.Min(1f, stateTime/20f));
                 movementBehavior = MovementBehavior.Investigate;
@@ -406,33 +425,18 @@ public class TROracleBehavior : SSOracleBehavior {
                 oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Add("TR_MetPlayer");
                 return;
             }
-        } else if (state == TROracleState.InspectPearl) {
-            if (pearlsToLookAt.Count == 0 && lookAtPearl is null) SwitchState(TROracleState.Idle);
-            movementBehavior = NewExtEnums.ReadPearl;
-            lookAtPearl ??= pearlsToLookAt.Dequeue();
-            if (lookAtPearl is null) return;
-            lookPoint = lookAtPearl.firstChunk.pos;
-            // shamelessly stolen from PebblesPearl
-            lookAtPearl.firstChunk.vel *= Custom.LerpMap(lookAtPearl.firstChunk.vel.magnitude, 1f, 6f, 0.999f, 0.9f);
-            lookAtPearl.firstChunk.vel += Vector2.ClampMagnitude(oracle.firstChunk.pos - lookAtPearl.firstChunk.pos, 100f) / 100f * (float) (0.4000000059604645 * (1.0 - room.gravity)); // i'm keeping the floating point error from the decompiler for shits and giggles
-            if (stateProgress == 0 && Custom.DistLess(lookAtPearl.firstChunk.pos, oracle.firstChunk.pos, 40)) {
-                stateProgress = 1;
-                InitiateConvo(Conversations.TR_PearlIntro);
-            } else if (stateProgress == 1 && conversation.slatedForDeletion) {
-                stateProgress = 2;
-                // this is stupid but i don't have time for a better solution
-                /*if (CustomRegions.Collectables.PearlData.CustomDataPearlsList.TryGetValue(
-                        lookAtPearl.AbstractPearl.dataPearlType, out Structs.CustomPearl porl)) {
-                    
-                }*/
-                
-                InitiateConvo(Conversation.DataPearlToConversation(lookAtPearl.AbstractPearl.dataPearlType));
-            } else if (stateProgress == 2 && conversation.slatedForDeletion) {
-                stateProgress = 0;
+        } else if (state == TROracleState.InspectObject) {
+            movementBehavior = MovementBehavior.Investigate;
+            interestingShit ??= shitToLookAt.Dequeue();
+            if (interestingShit is null) {
+                SwitchState(TROracleState.Idle);
+                return;
             }
+            investigatePos = interestingShit.firstChunk.pos;
         } else if (state == TROracleState.Welcome) SwitchState(TROracleState.Idle);
     }
 
+    private Vector2 investigatePos;
     private void InitiateConvo(Conversation.ID convoId) {
         if (conversation != null) {
             conversation.Interrupt("...", 0);
@@ -461,7 +465,7 @@ public class TROracleBehavior : SSOracleBehavior {
             FiniteStateMachine(room);
             if (movementBehavior == MovementBehavior.Investigate) {
                 if (player != null) {
-                    lookPoint = player.DangerPos;
+                    lookPoint = investigatePos;
                     investigateAngle = 180f;
                     bool newPos = false;
                     if (investigateAngle2 < -90.0 || investigateAngle2 > 90.0 || oracle.room.aimap.getTerrainProximity(nextPos) < 2.0 || Random.value < 0.01) {
@@ -470,8 +474,8 @@ public class TROracleBehavior : SSOracleBehavior {
                         newPos = true;
                     }
 
-                    if (Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) >= 210f || Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) < 100f || newPos) {
-                        Vector2 vector2 = player.DangerPos + Custom.DegToVec(investigateAngle2) * Random.Range(110f, 200f);
+                    if (Custom.Dist(investigatePos, oracle.bodyChunks[0].pos) >= 210f || Custom.Dist(investigatePos, oracle.bodyChunks[0].pos) < 100f || newPos) {
+                        Vector2 vector2 = investigatePos + Custom.DegToVec(investigateAngle2) * Random.Range(110f, 200f);
                         if (oracle.room.aimap.getTerrainProximity(vector2) >= 2.0) {
                             if (pathProgression > 0.9) {
                                 if (Custom.DistLess(oracle.firstChunk.pos, vector2, 30f))
@@ -485,15 +489,15 @@ public class TROracleBehavior : SSOracleBehavior {
                 }
             } else if (movementBehavior == MovementBehavior.KeepDistance) {
                 if (player != null) {
-                    lookPoint = player.DangerPos;
+                    lookPoint = investigatePos;
                     investigateAngle = 180f;
                     if (investigateAngle2 < -90.0 || investigateAngle2 > 90.0 || oracle.room.aimap.getTerrainProximity(nextPos) < 2.0) {
                         investigateAngle2 = Mathf.Lerp(-70f, 70f, Random.value);
                         invstAngSpeed = Mathf.Lerp(0.4f, 0.8f, Random.value) * (Random.value < 0.5 ? -1f : 1f);
                     }
 
-                    if (Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) < 400f) {
-                        Vector2 vector2 = player.DangerPos + Custom.DegToVec(investigateAngle2) * Random.Range(410f, 500f);
+                    if (Custom.Dist(investigatePos, oracle.bodyChunks[0].pos) < 400f) {
+                        Vector2 vector2 = investigatePos + Custom.DegToVec(investigateAngle2) * Random.Range(410f, 500f);
                         if (oracle.room.aimap.getTerrainProximity(vector2) >= 2.0) {
                             if (pathProgression > 0.9) {
                                 if (Custom.DistLess(oracle.firstChunk.pos, vector2, 30f))
@@ -507,14 +511,14 @@ public class TROracleBehavior : SSOracleBehavior {
                 }
             } else if (movementBehavior == MovementBehavior.Talk) {
                 if (player != null) {
-                    lookPoint = player.DangerPos;
+                    lookPoint = investigatePos;
                     investigateAngle = 180f;
                     if (investigateAngle2 < -90.0 || investigateAngle2 > 90.0 || oracle.room.aimap.getTerrainProximity(nextPos) < 2.0) {
                         investigateAngle2 = Mathf.Lerp(-70f, 70f, Random.value);
                         invstAngSpeed = Mathf.Lerp(0.4f, 0.8f, Random.value) * (Random.value < 0.5 ? -1f : 1f);
                     }
-                    if (Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) < 200f || Custom.Dist(player.DangerPos, oracle.bodyChunks[0].pos) > 310f) {
-                        Vector2 vector2 = player.DangerPos + Custom.DegToVec(investigateAngle2) * Random.Range(210f, 300f);
+                    if (Custom.Dist(investigatePos, oracle.bodyChunks[0].pos) < 200f || Custom.Dist(investigatePos, oracle.bodyChunks[0].pos) > 310f) {
+                        Vector2 vector2 = investigatePos + Custom.DegToVec(investigateAngle2) * Random.Range(210f, 300f);
                         if (oracle.room.aimap.getTerrainProximity(vector2) >= 2.0) {
                             if (pathProgression > 0.9) {
                                 if (Custom.DistLess(oracle.firstChunk.pos, vector2, 30f))
