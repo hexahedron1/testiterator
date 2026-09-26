@@ -7,6 +7,7 @@ using EffExt;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MoreSlugcats;
 using RWCustom;
 using TestIterator;
 using UnityEngine;
@@ -114,8 +115,8 @@ public static class Hooks {
                 Plugin.Logger.LogDebug($"Initiating dialogue {((TROracleBehavior)self.owner).interestingShit?.GetType().Name}");
                 switch (((TROracleBehavior)self.owner).interestingShit?.GetType().Name) {
                     case "DataPearl":
-                        if (self.owner.oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Contains("TR_DescribedPearl")) { 
-                            self.events.Add(new Conversation.TextEvent(self, 40, "This is a data pearl.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 40, "This is a data pearl.", 0));
+                        if (!self.owner.oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Contains("TR_DescribedPearl")) { 
                             self.events.Add(new Conversation.TextEvent(self, 0, "It is a special crystal memory complex made of diamond that acted as our creators' primary storage medium,<LINE>and now as ours.", 0));
                             self.events.Add(new Conversation.TextEvent(self, 0, "These pearls can contains a multitude of data types, from plain text to multimedia to raw internal language.", 0));
                             self.events.Add(new Conversation.TextEvent(self, 0, "Do you want me to read it?", 0));
@@ -148,6 +149,95 @@ public static class Hooks {
                         self.events.Add(new Conversation.TextEvent(self, 0, "This is a mass rarefaction cell, a backup energy source for our structures, originally used temporarily.<LINE>After our creators left this world and couldn't service us anymore, though, they became the primary one.", 0));
                         self.events.Add(new Conversation.TextEvent(self, 0, "The fact that this cell is in my chamber means that someone is not having a good time.", 0));
                         self.events.Add(new Conversation.TextEvent(self, 0, "Please, return this.", 0));
+                        break;
+                    case "Rock":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "It's a rock.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Not very useful, aside from perhaps as a weapon. Thank you, but I don't need it.", 0));
+                        break;
+                    case "Spear":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This is just a piece of sharpened rebar. It was likely detached from a wall by the elements.", 0));
+                        if (self.owner.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
+                            self.events.Add(new Conversation.TextEvent(self, 0, "You seem skilled enough at using it, what is it that you would like to know more?", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "It's just that - a pointy metal stick. You could also use it to bribe a scavenger, i suppose.", 0));
+                        break;
+                    case "ExplosiveSpear":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This appears to be a spear with a pouch of fire powder strapped to its tip. Hitting something with probably will cause it to explode.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, self.owner.player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Artificer
+                            ? "I don't have records of this. Did you make this? Or did you steal it from an unfortunate scavenger who happened to stumble upon you?"
+                            : "i don't have records of this. Did you get this from the scavengers?", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "In any case, I don't need to defend myself from anything, so you can take it.", 0));
+                        break;
+                    case "WaterNut":
+                    case "SwollenWaterNut":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This is a plant that usually inhabits areas near water.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "While dormant, its fruit has a hard shell, and it's as good as a rock.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Upon contact with water, though, the shell pops and it attains a bubble-like buoyant form, which it uses to travel across<LINE>bodies of water to spread itself.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "After popping, it becomes soft and can be eaten. People said it tastes good but watery,<LINE>but i can't tell for sure as i can't taste it.", 0));
+                        break;
+                    case "KarmaFlower":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This is a psychoactive plant, colloquially called a 'Wheel Flower'", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "It lets beings momentarily shed their carnal self and reach the selves of other planes of existence.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Because of that, it became the symbol of enlightenment.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "While it would be useful in research, I already have it thoroughly documented, so you can enjoy it yourself.", 0));
+                        break;
+                    case "DangleFruit":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "It's a bug pupa.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "These things are extremely widespread - you can find one nearly everywhere. Which makes it a good source of food.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "I don't need it, so you can have it back.", 0));
+                        break;
+                    case "FlareBomb":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This is a bioluminescent plant. A quite bright one, at that.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "It usually inhabits dark areas, which are also frequented by arachnids.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "To prevent being preyed on, it evolved to release an extremely powerful flash of light on impact with the ground.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Because most inhabitants of shaded areas are very sensitive to light, this sudden luminance spike<LINE>is extremely painful to them, often being lethal.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "For others, it simply causes temorary retina damage. It's not lethal and recovers quickly, but not pleasant,", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Close your eyes and look away if you need to use this.", 0));
+                        break;
+                    case "VultureMask":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This is a mask made of a composide material bonded with bone.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "They're primarily worn by vultures, though I've seen some crafty scavengers make ornate ones.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Since your species is frequently preyed on by lizards, here's a survival tip:", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Lizards are naturally scared of vultures, and covering your face with this mask will let you<LINE>pose as one and exploit their self-preservation instincts, for a short while at least. Eventually they'll realize you're just a meal to them,<LINE>by which time you should do your best to escape.", 0));
+                        if (self.owner.player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Artificer || self.owner.player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Spear || self.owner.player.SlugCatClass == SlugcatStats.Name.Red)
+                            self.events.Add(new Conversation.TextEvent(self, 0, "Or you could make them your own meal, i suppose. I'm sure you wouldn't hesitate.", 0));
+                        break;
+                    case "PuffBall":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This is a fungus. Its inside is at a high pressure - rupturing it will release lots of spores<LINE>in all directions.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Arachnids and the like don't handle inhaling them well. That doesn't mean you should, either.", 0));
+                        break;
+                    case "Jellyfish":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This is a jellyfish. They are often seen in aquatic areas.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "While usually passive, their stingers can deliver a painful electric shock, so be careful.", 0));
+                        break;
+                    case "Lantern":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This looks to be a small translucent shell with a glowing substance inside. Likely distilled slime mold.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "I wasn't provided with data for it, so it's likely a scavenger invention.", 0));
+                        break;
+                    case "Mushroom":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "It's a bioluminescent mushroom. These usually inhabit small, poorly lit crannys like caves or underground tunnels.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "It contains a non-toxic psychoactive drug that briefly increases adrenaline release and improves reaction time.", 0));
+                        break;
+                    case "FirecrackerPlant":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This is a fire bush. Each nut has a volatile substance inside, which is prone to exploding.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "It's not lethal, but rather unpleasant", 0));
+                        break;
+                    case "SlimeMold":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "It's a piece of slime mold plasmodium. It often lives in dark areas and eats whatever<LINE>decaying organic matter it can find.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Aside from that it's just a food source - you can have it.", 0));
+                        break;
+                    case "ScavengerBomb":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This appears to be a small shell with a lot of explosive powder in it. An impact would set it off.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Handle with care.", 0));
+                        break;
+                    case "BubbleGrass":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This is a plant with lots of tiny air reservoirs.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "They often grow in caves near water, and use this stored air to survive submerged in the periodic floods due to rain.", 0));
+                        break;
+                    case "OverseerCarcass":
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This is the eye of an overseer.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "They act as our eyes to the outside world, since our actual eyes can only reach within the puppet chamber.<LINE>You've probably seen a couple of them on the way here.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "The scavengers like to hunt them - it's their way of expressing defiance towards us. For what though, i'm not so sure.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Be careful if both of them are nearby.", 0));
                         break;
                     default:
                         Plugin.Logger.LogDebug("Unknown object");
