@@ -10,7 +10,7 @@ public static class Effects {
         cycleDrainDefBuilder.SetUADFactory(CycleDrain.UADFactory).SetCategory("Test Iterator").Register();
         Pom.Pom.RegisterEmptyObjectType<CycleDrain.CycleDrainMax, Pom.Pom.ManagedRepresentation>("CycleDrainMax", "Test Iterator");
         EffectDefinitionBuilder effectColorFlickerBuilder = new("EffectColorFlicker");
-        cycleDrainDefBuilder.AddBoolField("useColorB", false, "Use color B").SetUADFactory(EffectColorFlicker.UADFactory).SetCategory("Test Iterator").Register();
+        effectColorFlickerBuilder.AddBoolField("useColorB", false, "Use color B").SetUADFactory(EffectColorFlicker.UADFactory).SetCategory("Test Iterator").Register();
     }
 
     public class CycleDrain : UpdatableAndDeletable {

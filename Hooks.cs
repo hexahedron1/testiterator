@@ -33,7 +33,7 @@ public static class NewExtEnums {
 public static class Conversations {
     public static Conversation.ID TR_MeetWhite = new(nameof(TR_MeetWhite), true);
     public static Conversation.ID TR_WelcomeBack = new(nameof(TR_WelcomeBack), true);
-    public static Conversation.ID TR_PearlIntro = new(nameof(TR_PearlIntro), true);
+    public static Conversation.ID TR_Object = new(nameof(TR_Object), true);
 
     static void Unregister(Conversation.ID id) {
         if (id == null)
@@ -44,7 +44,7 @@ public static class Conversations {
     internal static void UnregisterValues() {
         Unregister(TR_MeetWhite);
         Unregister(TR_WelcomeBack);
-        Unregister(TR_PearlIntro);
+        Unregister(TR_Object);
     }
 }
 
@@ -102,15 +102,74 @@ public static class Hooks {
                     "Don't hesitate to return with something, through. I would like some company.", 0));
                 return;
             }
-            if (self.id == Conversations.TR_PearlIntro) {
+            if (self.id == Conversations.TR_WelcomeBack) {
                 self.events.Add(new Conversation.TextEvent(self, 0, Random.Range(0, 3) switch {
-                    0 => "It's a pearl. Do you want me to read it?",
-                    1 => "This is a data pearl, i'll read it for you.",
-                    2 => "This is a pearl. I'll read it.",
-                    _ => "It's a data pearl, do you want me to read it?"
+                    0 => "Welcome back.",
+                    1 => "Hello again.",
+                    _ => "Hello again, little visitor.",
                 }, 0));
-                if (((TROracleBehavior)self.owner).shitToLookAt.Count > 1)
-                    self.events.Add(new Conversation.TextEvent(self, 0, "We'll look at the others as well.", 0));
+                return;
+            }
+            if (self.id == Conversations.TR_Object) {
+                Plugin.Logger.LogDebug($"Initiating dialogue {((TROracleBehavior)self.owner).interestingShit?.GetType().Name}");
+                switch (((TROracleBehavior)self.owner).interestingShit?.GetType().Name) {
+                    case "DataPearl":
+                        if (self.owner.oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Contains("TR_DescribedPearl")) { 
+                            self.events.Add(new Conversation.TextEvent(self, 40, "This is a data pearl.", 0));
+                            self.events.Add(new Conversation.TextEvent(self, 0, "It is a special crystal memory complex made of diamond that acted as our creators' primary storage medium,<LINE>and now as ours.", 0));
+                            self.events.Add(new Conversation.TextEvent(self, 0, "These pearls can contains a multitude of data types, from plain text to multimedia to raw internal language.", 0));
+                            self.events.Add(new Conversation.TextEvent(self, 0, "Do you want me to read it?", 0));
+                        } else {
+                            self.events.Add(new Conversation.TextEvent(self, 30, Random.Range(0, 10) switch {
+                                0 => "You want me to read this one as well?",
+                                1 => "I suppose you would like me to read it.",
+                                2 => "I'll read it for you.",
+                                3 => "Let's read it.",
+                                4 => "Let's see...",
+                                5 => "Here's what it contains:",
+                                6 => "This is what it says:",
+                                7 => "I'll read it.",
+                                8 => "Time for another history lesson.",
+                                9 => "You want me to read it, don't you?",
+                                _ => "this line should be impossible to see"
+                                
+                            }, 0));
+                        }
+                        break;
+                    case "SSOracleSwarmer":
+                        self.events.Add(new Conversation.TextEvent(self, 40, "This is a neuron fly. It's an organic device intended for local temporary storage and transport of data.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "While i do have millions of these and can replace them, I still request you to not take them.<LINE>Each one of them is there for a reason, and replacing them is not a fun thing to do...", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Please return it to where you found it.", 0));
+                        break;
+                    case "EnergyCell":
+                        self.events.Add(new Conversation.TextEvent(self, 40, "Oh...", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Where did you get this?", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Actually, do you have any clue what this is?", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "This is a mass rarefaction cell, a backup energy source for our structures, originally used temporarily.<LINE>After our creators left this world and couldn't service us anymore, though, they became the primary one.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "The fact that this cell is in my chamber means that someone is not having a good time.", 0));
+                        self.events.Add(new Conversation.TextEvent(self, 0, "Please, return this.", 0));
+                        break;
+                    default:
+                        Plugin.Logger.LogDebug("Unknown object");
+                        switch (Random.Range(0, 3)) {
+                            case 0:
+                                self.events.Add(new Conversation.TextEvent(self, 40, "Interesting, I don't have this object on my record.", 0));
+                                self.events.Add(new Conversation.TextEvent(self, 0, "Which is especially strange since it contains data for thousands of things.", 0));
+                                self.events.Add(new Conversation.TextEvent(self, 0, "Sorry, i can't tell you anything about this because of that.", 0));
+                                break;
+                            case 1:
+                                self.events.Add(new Conversation.TextEvent(self, 0, "I don't know what this is.", 0));
+                                self.events.Add(new Conversation.TextEvent(self, 0, "By some miracle I do not have this kind of object documented in my database.", 0));
+                                self.events.Add(new Conversation.TextEvent(self, 0, "Please forgive me, I can't provide any data for it.", 0));
+                                break;
+                            case 2:
+                                self.events.Add(new Conversation.TextEvent(self, 0, "What is this?", 0));
+                                self.events.Add(new Conversation.TextEvent(self, 0, "No specimen of this kind was recorded in my archives.", 0));
+                                self.events.Add(new Conversation.TextEvent(self, 0, "I can't tell you anything about this thing, sorry.", 0));
+                                break;
+                        }
+                        break;
+                }
                 return;
             }
             return;

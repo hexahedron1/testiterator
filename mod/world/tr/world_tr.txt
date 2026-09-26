@@ -83,7 +83,7 @@ TR_LAB01 : 4-Inspector-{Ignorecycle}
 // The Facade
 TR_A03 : 3-WhiteLizard
 TR_A04 : 3-BlueLizard
-TR_A05 : 3-YellowLizard-2
+TR_A05 : 3-YellowLizard-2, 5-YellowLizard-2, 6-YellowLizard
 TR_A07 : 4-PoleMimic-{Mean:11}, 6-PoleMimic-{Mean:9}, 7-WhiteLizard, 8-PoleMimic-{Mean:7} 10-EelLizard{PreCycle}
 OFFSCREEN : 0-Scavenger-15
 TR_A10 : 2-WhiteLizard, 3-YellowLizard, 4-YellowLizard-2

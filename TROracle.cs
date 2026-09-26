@@ -10,9 +10,10 @@ using Random = UnityEngine.Random;
 namespace TestIterator;
 
 public class TROracle : Oracle {
-    public ProjectionCircle objectCircle = new(new Vector2(0f, 0f), 15f, 3f);
+    public ProjectedImage objectInfocard;
     public TROracle(AbstractPhysicalObject apo, Room room) : base(apo, room) {
         room.AddObject(myScreen = new OracleProjectionScreen(room, oracleBehavior = new TROracleBehavior(this)));
+        
         marbles = [];
         SetUpMarbles();
         room.gravity = 0.0f;
@@ -26,7 +27,19 @@ public class TROracle : Oracle {
             break;
         }
         arm = new TROracleArm(this);
-        behavior.SetNewDestination(new Vector2(480, 350));
+        behavior.SetNewDestination(behavior.roomCenter);
+        var infocards = (from x in AssetManager.ListDirectory("illustrations") 
+            where x.Split('\\').Last().StartsWith("aiimg1_tr") 
+                  && !x.Split('\\').Last().EndsWith("aseprite")
+            select x.Split('\\').Last().Split('.')[0]).ToList();
+        // it's *technically* possible to witness it switching but you'd need to sit in his chamber for slightly more than 68 years
+        Plugin.Logger.LogDebug("Existing infocards:");
+        for (int i = 0; i < infocards.Count; i++) {
+            behavior.existingInfocards.Add(infocards[i], i);
+            Plugin.Logger.LogDebug(infocards[i]);
+        }
+        objectInfocard = myScreen.AddImage(infocards, int.MaxValue);
+        objectInfocard.alpha = 0f;
     }
 
     public TROracleBehavior behavior => (TROracleBehavior)oracleBehavior;
@@ -208,10 +221,8 @@ public class TROracleBehavior : SSOracleBehavior {
         if (newState == TROracleState.Welcome && !oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Contains("TR_MetPlayer")) newState = GetFirstEncounterState(player.SlugCatClass) ?? TROracleState.FirstEncounter_Unknown;
         state = newState;
         Plugin.Logger.LogInfo("New state: " + state);
-        trOracle.objectCircle.pos = new Vector2(0, 0);
         if (state.value.StartsWith("FirstEncounter")) {
             awareOfPlayer = true;
-            awareOfPlayerTime = 0f;
             movementBehavior = MovementBehavior.Investigate;
             oracle.room.gravity = 0.8f;
             oracle.room.PlaySound(SoundID.Broken_Anti_Gravity_Switch_Off);
@@ -221,8 +232,11 @@ public class TROracleBehavior : SSOracleBehavior {
 
         if (state == TROracleState.Welcome) {
             awareOfPlayer = true;
+            if (seenPlayerThisCycle) {
+                SwitchState(TROracleState.Idle);
+                return;
+            }
             InitiateConvo(Conversations.TR_WelcomeBack);
-            SwitchState(TROracleState.Idle);
         }
         if (state == TROracleState.Idle) {
             UnlockShortcuts();
@@ -239,6 +253,7 @@ public class TROracleBehavior : SSOracleBehavior {
             oracle.setGravity(1f);
             oracle.room.gravity = 1f;
             oracle.room.PlaySound(SoundID.Broken_Anti_Gravity_Switch_Off);
+            UnlockShortcuts();
         }
         if (state == TROracleState.InspectObject) {
             LockShortcuts();
@@ -264,7 +279,7 @@ public class TROracleBehavior : SSOracleBehavior {
     }
 
     private bool awareOfPlayer;
-    private float awareOfPlayerTime;
+    private int awareOfPlayerTime;
 
     private void SetPalette(int palA, int palB, float blend) {
         foreach (var t in oracle.room.game.cameras) {
@@ -274,9 +289,14 @@ public class TROracleBehavior : SSOracleBehavior {
     }
 
     public Queue<PhysicalObject> shitToLookAt = [];
-    [CanBeNull] private PhysicalObject interestingShit;
+    [CanBeNull] public PhysicalObject interestingShit;
     private int idleProgress;
     private List<PhysicalObject> shitThatThePlayerHeld = [];
+    private List<EntityID> lookedAtThisCycle = [];
+    private bool seenPlayerThisCycle;
+    public Vector2 roomCenter = new(485, 360);
+    public Dictionary<string, int> existingInfocards = [];
+    private bool unknownCard;
     void FiniteStateMachine(Room room) {
         if ((state == TROracleState.Idle && movementBehavior == MovementBehavior.Idle) ||
             state == TROracleState.InspectObject) {
@@ -288,21 +308,18 @@ public class TROracleBehavior : SSOracleBehavior {
                     }
                 }
             }
-
             foreach (var shit in shitThatThePlayerHeld.ToList()) {
-                if (shit.grabbedBy.Count != 0) continue;
+                if (shit.grabbedBy.Count != 0 || lookedAtThisCycle.Contains(shit.abstractPhysicalObject.ID)) continue;
                 shitToLookAt.Enqueue(shit);
                 shitThatThePlayerHeld.Remove(shit);
             }
         }
         if (state == TROracleState.Idle) {
-            SetPalette(23, 26, Math.Min(1f, stateProgress/20f));
             if (movementBehavior == MovementBehavior.Idle) {
                 invstAngSpeed = 1f;
                 if (investigateMarble == null && oracle.marbles.Count > 0) {
                     if (idleProgress > (room.world.rainCycle.AmountLeft > 0 ? 2400 : 120) && Random.Range(0, room.world.rainCycle.AmountLeft > 0 ? 150 : 10) == 0) {
                         movementBehavior = MovementBehavior.Meditate;
-                        SetNewDestination(new Vector2(480, 350));
                         idleProgress = 0;
                     }
                     var selectable = (from x in oracle.marbles where x.orbitObj == null select x).ToArray();
@@ -344,7 +361,8 @@ public class TROracleBehavior : SSOracleBehavior {
                 }
             } else if (movementBehavior == MovementBehavior.Meditate) {
                 lookPoint = oracle.bodyChunks[0].pos;
-                currentGetTo = new Vector2(480, 350);
+                if (nextPos != roomCenter)
+                    SetNewDestination(roomCenter);
                 if (idleProgress > (room.world.rainCycle.AmountLeft > 0 ? 800 : 1600) && Random.Range(0, room.world.rainCycle.AmountLeft > 0 ? 150 : 1200) == 0) {
                     movementBehavior = MovementBehavior.Idle;
                     idleProgress = 0;
@@ -413,7 +431,6 @@ public class TROracleBehavior : SSOracleBehavior {
                     if (stateTime > 1100) {
                         ((PlayerGraphics)player.graphicsModule).markAlpha = Mathf.Max(((PlayerGraphics)player.graphicsModule).markAlpha, Mathf.InverseLerp(500f, 300f, stateTime-800));
                     }
-
                     if (stateTime == 1200) {
                         stateProgress = 2;
                         movementBehavior = MovementBehavior.Talk;
@@ -423,25 +440,71 @@ public class TROracleBehavior : SSOracleBehavior {
             } else if (stateProgress == 2 && conversation.slatedForDeletion) {
                 SwitchState(TROracleState.Idle);
                 oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Add("TR_MetPlayer");
-                return;
             }
         } else if (state == TROracleState.InspectObject) {
-            movementBehavior = MovementBehavior.Investigate;
-            interestingShit ??= shitToLookAt.Dequeue();
+            movementBehavior = MovementBehavior.Investigate; 
             if (interestingShit is null) {
-                SwitchState(TROracleState.Idle);
-                return;
+                stateProgress = 0;
+                interestingShit = shitToLookAt.Count > 0 ? shitToLookAt.Dequeue() : null;
+                if (interestingShit is null) {
+                    trOracle.objectInfocard.alpha = 0f;
+                    SwitchState(TROracleState.Idle);
+                    return;
+                }
+                Plugin.Logger.LogDebug($"New thing to look at: {interestingShit.GetType().Name}");
+                if (existingInfocards.TryGetValue($"aiimg1_tr_{interestingShit.GetType().Name.ToLower()}", out int idx)) {
+                    trOracle.objectInfocard.currImg = idx;
+                    unknownCard = false;
+                    Plugin.Logger.LogDebug($"Found info card for {interestingShit.GetType().Name} ({idx})");
+                } else {
+                    trOracle.objectInfocard.currImg = existingInfocards["aiimg1_tr_err1"];
+                    unknownCard = true;
+                    Plugin.Logger.LogDebug($"No info card found for {interestingShit.GetType().Name}");
+                }
             }
+
+            if (unknownCard && stateTime % 20 == 0) {
+                room.PlaySound(SoundID.SS_AI_Image, 0.0f, 1f, 1f);
+                trOracle.objectInfocard.currImg = existingInfocards["aiimg1_tr_err" + (stateTime%40 < 20 ? 2 : 1)];
+            }
+            // ripped right from PebblesPearl lol
+            if (interestingShit is SSOracleSwarmer swarmer) {
+                swarmer.travelDirection = (roomCenter - swarmer.firstChunk.pos).normalized;
+            }
+            else {
+                interestingShit.firstChunk.vel *=
+                    Custom.LerpMap(interestingShit.firstChunk.vel.magnitude, 1f, 6f, 0.999f, 0.5f);
+                interestingShit.firstChunk.vel +=
+                    Vector2.ClampMagnitude(roomCenter - interestingShit.firstChunk.pos, 100f) / 100f *
+                    (float)(0.4000000059604645 * (1.0 - room.gravity));
+            }
+            trOracle.objectInfocard.pos = interestingShit.firstChunk.pos + new Vector2(90, -60);
             investigatePos = interestingShit.firstChunk.pos;
-        } else if (state == TROracleState.Welcome) SwitchState(TROracleState.Idle);
+            trOracle.objectInfocard.alpha = 1f;
+            if (stateProgress == 0 && stateTime > 100) {
+                InitiateConvo(Conversations.TR_Object);
+                stateProgress = 1;
+            } else if (stateProgress == 1 && conversation.slatedForDeletion) {
+                lookedAtThisCycle.Add(interestingShit.abstractPhysicalObject.ID);
+                if (interestingShit is DataPearl porl) {
+                    room.game.GetStorySession.saveState.unrecognizedSaveStrings.Add("TR_DescribedPearl");
+                    Plugin.Logger.LogDebug($"Initiating pearl dialogue for {porl.AbstractPearl.dataPearlType.value}");
+                    // TODO: pearl reading
+                    stateProgress = 2;
+                } else {
+                    Plugin.Logger.LogDebug("Finished dialogue");
+                    interestingShit = null;
+                }
+            }
+        } else if (state == TROracleState.Welcome) {
+            lookPoint = player.DangerPos;
+            if (conversation.slatedForDeletion) SwitchState(TROracleState.Idle);
+        }
     }
 
     private Vector2 investigatePos;
     private void InitiateConvo(Conversation.ID convoId) {
-        if (conversation != null) {
-            conversation.Interrupt("...", 0);
-            conversation.Destroy();
-        }
+        conversation?.Destroy();
         var convBehav = new TRConversationBehavior(this, SubBehavior.SubBehavID.General, convoId);
         conversation = new PebblesConversation(this, convBehav, convoId, dialogBox);
         if (ModManager.MSC) conversation.colorMode = true;
@@ -462,7 +525,14 @@ public class TROracleBehavior : SSOracleBehavior {
                     oracle.room.AddObject(errorTestPearl);
                 }
             }
+            if (conversation is { slatedForDeletion: true }) conversation.Destroy();
             FiniteStateMachine(room);
+            if (awareOfPlayer) {
+                seenPlayerThisCycle = true;
+                awareOfPlayerTime++;
+            }
+            else awareOfPlayerTime = 0;
+            SetPalette(26, 23, Math.Min(1f, awareOfPlayerTime/20f));
             if (movementBehavior == MovementBehavior.Investigate) {
                 if (player != null) {
                     lookPoint = investigatePos;
@@ -531,12 +601,10 @@ public class TROracleBehavior : SSOracleBehavior {
                     }
                 }
             } else if (movementBehavior == NewExtEnums.ReadPearl) {
-                if (Custom.Dist(nextPos, new Vector2(480, 350)) > 20)
-                    SetNewDestination(new(480, 350));
+                if (nextPos != roomCenter)
+                    SetNewDestination(roomCenter);
             }
             conversation?.Update();
-            if (awareOfPlayer)
-                awareOfPlayerTime += 0.025f;
             currentGetTo = Custom.Bezier(lastPos, ClampVectorInRoom(lastPos + lastPosHandle), nextPos, ClampVectorInRoom(nextPos + nextPosHandle), pathProgression);
             pathProgression = Mathf.Min(1f, pathProgression + 1f / Mathf.Lerp((float)(40.0 + pathProgression * 80.0),
                 Vector2.Distance(lastPos, nextPos) / 5f, 0.5f));

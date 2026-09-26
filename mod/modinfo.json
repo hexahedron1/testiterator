@@ -1,9 +1,9 @@
 ﻿{
   "id": "hexahedron1.testiterator",
   "name": "Test iterator",
-  "version": "0.2.44",
+  "version": "0.2.71",
   "authors": "hexahedron1",
-  "description": "Yet another iterator OC blah blah blah you know the drill go eat all the neurons",
+  "description": "Yet another iterator OC blah blah blah you know the drill go eat all his neurons",
   "tags": [ "Regions" ],
   "requirements": [ "regionkit", "crs" ],
   "requirements_names": [ "RegionKit, Custom Regions Support" ],
