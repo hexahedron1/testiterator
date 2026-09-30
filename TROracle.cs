@@ -237,6 +237,7 @@ public class TROracleBehavior : SSOracleBehavior {
                 return;
             }
             InitiateConvo(Conversations.TR_WelcomeBack);
+            TurnOffSSMusic(false);
         }
         if (state == TROracleState.Idle) {
             UnlockShortcuts();
@@ -297,6 +298,7 @@ public class TROracleBehavior : SSOracleBehavior {
     public Vector2 roomCenter = new(485, 360);
     public Dictionary<string, int> existingInfocards = [];
     private bool unknownCard;
+    private bool unknownPearlCard;
     void FiniteStateMachine(Room room) {
         if ((state == TROracleState.Idle && movementBehavior == MovementBehavior.Idle) ||
             state == TROracleState.InspectObject) {
@@ -308,8 +310,8 @@ public class TROracleBehavior : SSOracleBehavior {
                     }
                 }
             }
-            foreach (var shit in shitThatThePlayerHeld.ToList()) {
-                if (shit.grabbedBy.Count != 0 || lookedAtThisCycle.Contains(shit.abstractPhysicalObject.ID)) continue;
+
+            foreach (var shit in shitThatThePlayerHeld.ToList().Where(shit => shit.grabbedBy.Count == 0 && !lookedAtThisCycle.Contains(shit.abstractPhysicalObject.ID))) {
                 shitToLookAt.Enqueue(shit);
                 shitThatThePlayerHeld.Remove(shit);
             }
@@ -445,6 +447,7 @@ public class TROracleBehavior : SSOracleBehavior {
             movementBehavior = MovementBehavior.Investigate; 
             if (interestingShit is null) {
                 stateProgress = 0;
+                stateSwitchTime = oracle.room.game.timeInRegionThisCycle;
                 interestingShit = shitToLookAt.Count > 0 ? shitToLookAt.Dequeue() : null;
                 if (interestingShit is null) {
                     trOracle.objectInfocard.alpha = 0f;
@@ -452,20 +455,29 @@ public class TROracleBehavior : SSOracleBehavior {
                     return;
                 }
                 Plugin.Logger.LogDebug($"New thing to look at: {interestingShit.GetType().Name}");
-                if (existingInfocards.TryGetValue($"aiimg1_tr_{interestingShit.GetType().Name.ToLower()}", out int idx)) {
+                string cardId = interestingShit.GetType().Name.ToLower();
+                if (interestingShit is DataPearl porl) {
+                    cardId += $"_{porl.AbstractPearl.dataPearlType.value.ToLower()}";
+                    if (!existingInfocards.ContainsKey(cardId)) cardId = "aiimg1_tr_datapearl-err1";
+                    
+                }
+                if (existingInfocards.TryGetValue($"aiimg1_tr_{cardId}", out int idx)) {
                     trOracle.objectInfocard.currImg = idx;
                     unknownCard = false;
-                    Plugin.Logger.LogDebug($"Found info card for {interestingShit.GetType().Name} ({idx})");
+                    Plugin.Logger.LogDebug($"Found {cardId}: {idx}");
                 } else {
-                    trOracle.objectInfocard.currImg = existingInfocards["aiimg1_tr_err1"];
+                    trOracle.objectInfocard.currImg = existingInfocards["aiimg1_tr-err1"];
                     unknownCard = true;
-                    Plugin.Logger.LogDebug($"No info card found for {interestingShit.GetType().Name}");
+                    Plugin.Logger.LogDebug($"No info card found: {cardId}");
                 }
             }
 
             if (unknownCard && stateTime % 20 == 0) {
                 room.PlaySound(SoundID.SS_AI_Image, 0.0f, 1f, 1f);
-                trOracle.objectInfocard.currImg = existingInfocards["aiimg1_tr_err" + (stateTime%40 < 20 ? 2 : 1)];
+                trOracle.objectInfocard.currImg = existingInfocards["aiimg1_tr-err" + (stateTime%40 < 20 ? 2 : 1)];
+            } else if (unknownPearlCard && stateTime % 20 == 0) {
+                room.PlaySound(SoundID.SS_AI_Image, 0.0f, 1f, 1f);
+                trOracle.objectInfocard.currImg = existingInfocards["aiimg1_tr_datapearl-err" + (stateTime%40 < 20 ? 2 : 1)];
             }
             // ripped right from PebblesPearl lol
             if (interestingShit is SSOracleSwarmer swarmer) {
@@ -490,11 +502,15 @@ public class TROracleBehavior : SSOracleBehavior {
                     room.game.GetStorySession.saveState.unrecognizedSaveStrings.Add("TR_DescribedPearl");
                     Plugin.Logger.LogDebug($"Initiating pearl dialogue for {porl.AbstractPearl.dataPearlType.value}");
                     // TODO: pearl reading
+                    InitiateConvo(Conversation.DataPearlToConversation(porl.AbstractPearl.dataPearlType));
                     stateProgress = 2;
                 } else {
                     Plugin.Logger.LogDebug("Finished dialogue");
                     interestingShit = null;
                 }
+            } else if (stateProgress == 2 && conversation.slatedForDeletion) {
+                Plugin.Logger.LogDebug("Finished dialogue");
+                interestingShit = null;
             }
         } else if (state == TROracleState.Welcome) {
             lookPoint = player.DangerPos;

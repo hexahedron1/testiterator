@@ -1,8 +1,8 @@
 base : ???
 Test Iterator : 3 : Creature of steel
 Intake system : 1
-Supports : 2
-Exhaust System : 3 : 500 dropwigs
+Supports : 2 : 500 dropwigs
+Exhaust System : 3
 The Facade : 4
 Power Distribution Assembly : 5
 Arteries : 6

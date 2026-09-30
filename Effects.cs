@@ -38,7 +38,6 @@ public static class Effects {
         public override void Update(bool eu) {
             if (room?.waterObject is null) return;
             room.waterObject.originalWaterLevel = Mathf.Lerp(startLevel, endLevel, room.world.rainCycle.CycleProgression);
-            Plugin.Logger.LogInfo(room.waterObject.originalWaterLevel);
         }
     }
 

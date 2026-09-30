@@ -17,7 +17,7 @@ namespace TestIterator;
 public static class NewExtEnums {
     public static Oracle.OracleID TR = new(nameof (TR), true);
     public static SSOracleBehavior.MovementBehavior ReadPearl = new(nameof(ReadPearl), true);
-    // multiple generic types AND one line? what more could i ask for
+    
     
 
     static void Unregister<T>(ExtEnum<T> id) where T : class {
@@ -63,8 +63,25 @@ public static class Hooks {
         On.SuperStructureFuses.ctor += On_SuperStructureFuses_ctor;
         On.DebugMouse.Update += On_DebugMouse_Update;
         On.RoomCamera.ModifyEffectColorA += On_RoomCamera_ModifyEffectColorA;
-        //On.Room.WaterFluxController.waterFluxState += On_Room_WaterFluxController_WaterFluxState;
         On.SSOracleBehavior.PebblesConversation.AddEvents += On_SSOracleBehavior_PebblesConversation_AddEvents;
+    }
+
+    public static void Unapply() {
+        On.Room.ReadyForAI -= On_Room_ReadyForAI;
+        On.OracleGraphics.Gown.Color -= On_Gown_Color;
+        On.OracleGraphics.SkinColor -= On_OracleGraphics_SkinColor;
+        On.OracleGraphics.ArmJointGraphics.ctor -= On_ArmJointGraphics_ctor;
+        IL.Oracle.ctor -= IL_Oracle_ctor;
+        IL.Oracle.OracleArm.Joint.Update -= IL_Joint_Update;
+        IL.Oracle.OracleArm.Update -= IL_OracleArm_Update;
+        NewExtEnums.UnregisterValues();
+        Conversations.UnregisterValues();
+        On.Oracle.SetUpMarbles -= On_Oracle_SetUpMables;
+        On.DataPearl.ApplyPalette -= On_DataPearl_ApplyPalette;
+        On.SuperStructureFuses.ctor -= On_SuperStructureFuses_ctor;
+        On.DebugMouse.Update -= On_DebugMouse_Update;
+        On.RoomCamera.ModifyEffectColorA -= On_RoomCamera_ModifyEffectColorA;
+        On.SSOracleBehavior.PebblesConversation.AddEvents -= On_SSOracleBehavior_PebblesConversation_AddEvents;
     }
 
     private static Color[] On_RoomCamera_ModifyEffectColorA(On.RoomCamera.orig_ModifyEffectColorA orig, RoomCamera self, Color[] colors) {
@@ -121,20 +138,15 @@ public static class Hooks {
                             self.events.Add(new Conversation.TextEvent(self, 0, "These pearls can contains a multitude of data types, from plain text to multimedia to raw internal language.", 0));
                             self.events.Add(new Conversation.TextEvent(self, 0, "Do you want me to read it?", 0));
                         } else {
-                            self.events.Add(new Conversation.TextEvent(self, 30, Random.Range(0, 10) switch {
+                            self.events.Add(new Conversation.TextEvent(self, 30, Random.Range(0, 5) switch {
                                 0 => "You want me to read this one as well?",
                                 1 => "I suppose you would like me to read it.",
                                 2 => "I'll read it for you.",
-                                3 => "Let's read it.",
-                                4 => "Let's see...",
-                                5 => "Here's what it contains:",
-                                6 => "This is what it says:",
-                                7 => "I'll read it.",
-                                8 => "Time for another history lesson.",
-                                9 => "You want me to read it, don't you?",
+                                3 => "I'll read it.",
+                                4 => "You want me to read it, don't you?",
                                 _ => "this line should be impossible to see"
-                                
                             }, 0));
+                            self.events.Add(new Conversation.TextEvent(self, 30, "Let's see...", 0));
                         }
                         break;
                     case "SSOracleSwarmer":
@@ -265,22 +277,6 @@ public static class Hooks {
             return;
         }
         orig(self);
-    }
-
-    public static void Unapply() {
-        On.Room.ReadyForAI -= On_Room_ReadyForAI;
-        On.OracleGraphics.Gown.Color -= On_Gown_Color;
-        On.OracleGraphics.SkinColor -= On_OracleGraphics_SkinColor;
-        On.OracleGraphics.ArmJointGraphics.ctor -= On_ArmJointGraphics_ctor;
-        IL.Oracle.ctor -= IL_Oracle_ctor;
-        IL.Oracle.OracleArm.Joint.Update -= IL_Joint_Update;
-        IL.Oracle.OracleArm.Update -= IL_OracleArm_Update;
-        NewExtEnums.UnregisterValues();
-        Conversations.UnregisterValues();
-        On.Oracle.SetUpMarbles -= On_Oracle_SetUpMables;
-        On.DataPearl.ApplyPalette -= On_DataPearl_ApplyPalette;
-        On.SuperStructureFuses.ctor -= On_SuperStructureFuses_ctor;
-        On.DebugMouse.Update -= On_DebugMouse_Update;
     }
     private static void On_DebugMouse_Update(On.DebugMouse.orig_Update orig, DebugMouse self, bool eu) {
         orig(self, eu);

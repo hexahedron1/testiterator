@@ -1,11 +1,11 @@
 ﻿{
   "id": "hexahedron1.testiterator",
   "name": "Test iterator",
-  "version": "0.2.72",
+  "version": "0.2.94",
   "authors": "hexahedron1",
   "description": "Yet another iterator OC blah blah blah you know the drill go eat all his neurons",
   "tags": [ "Regions" ],
-  "requirements": [ "regionkit", "crs" ],
-  "requirements_names": [ "RegionKit, Custom Regions Support" ],
+  "requirements": [ "regionkit", "crs", "moreslugcats" ],
+  "requirements_names": [ "RegionKit, Custom Regions Support", "More Slugcats Expansion" ],
   "checksum_override_version": true
 }

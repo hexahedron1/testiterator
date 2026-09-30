@@ -17,7 +17,7 @@ sealed class Plugin : BaseUnityPlugin
     private static bool IsInit;
     public const string GUID = "hexahedron1.testiterator";
     public const string Name = "Test iterator";
-    public const string Version = "0.2.72"; // TODO: version
+    public const string Version = "0.2.94"; // TODO: version
     public void OnEnable()
     {
         Logger = base.Logger;
@@ -36,6 +36,7 @@ sealed class Plugin : BaseUnityPlugin
         IsInit = true;
 
         Effects.Register();
+        Objects.Register();
         
         Logger.LogInfo(Version);
     }

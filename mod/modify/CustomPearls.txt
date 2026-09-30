@@ -1,1 +1,1 @@
-[ADD]TR_Schematic : a8865a : a8865a : TR_1
+[ADD]TR_Schematic : a8865a : a8865a : TR_Schematic

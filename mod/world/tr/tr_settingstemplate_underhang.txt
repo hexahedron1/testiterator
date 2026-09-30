@@ -18,4 +18,4 @@ Palette: 15
 EffectColorA: 19
 EffectColorB: 5
 Effects: Lightning-0.8-242-104, ElectricDeath-1-20-20, GreenSparks-0.75-466-160, RainSiren-0.6-544-10-songname:Moon_Siren, ExtraLoudThunder-0.25-36-131,
-AmbientSounds: OMNI><AM_ENV-NatWind.ogg><223.2284><443.5511><0.5><1, OMNI><AM_RAIN-QuietThunder.ogg><298.316><323.3284><0.75><1, OMNI><AM_ENV-WallHum.ogg><743.1225><560.3419><0.3913043><1, OMNI><AM_IND-SuperStructure.ogg><120.6284><163.1534><0.3><1,
+AmbientSounds: OMNI><AM_ENV-NatWind.ogg><223.2284><443.5511><0.5><1, OMNI><AM_RAIN-QuietThunder.ogg><298.316><323.3284><0.75><1, OMNI><AM_ENV-WallHum.ogg><743.1225><560.3419><0.3913043><1, OMNI><AM_IND-SuperStructure.ogg><120.6284><163.1534><0.1><1,
