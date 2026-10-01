@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using CustomRegions.Collectables;
+using CustomRegions.Mod;
 using EffExt;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -274,7 +276,13 @@ public static class Hooks {
                 }
                 return;
             }
-            return;
+
+            if (PearlData.CustomDataPearlsList.Any(x => x.Value.conversationID == self.id)) {
+                Plugin.Logger.LogInfo("Found");
+                var pearl = PearlData.CustomDataPearlsList.First(x => x.Value.conversationID == self.id);
+                CustomConvo.LoadEventsFromFile(self, pearl.Value.filePath, NewExtEnums.TR);
+                return;
+            }
         }
         orig(self);
     }

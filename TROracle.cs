@@ -444,7 +444,7 @@ public class TROracleBehavior : SSOracleBehavior {
                 oracle.room.game.GetStorySession.saveState.unrecognizedSaveStrings.Add("TR_MetPlayer");
             }
         } else if (state == TROracleState.InspectObject) {
-            movementBehavior = MovementBehavior.Investigate; 
+            if (stateProgress < 2) movementBehavior = MovementBehavior.Investigate; 
             if (interestingShit is null) {
                 stateProgress = 0;
                 stateSwitchTime = oracle.room.game.timeInRegionThisCycle;
@@ -456,11 +456,6 @@ public class TROracleBehavior : SSOracleBehavior {
                 }
                 Plugin.Logger.LogDebug($"New thing to look at: {interestingShit.GetType().Name}");
                 string cardId = interestingShit.GetType().Name.ToLower();
-                if (interestingShit is DataPearl porl) {
-                    cardId += $"_{porl.AbstractPearl.dataPearlType.value.ToLower()}";
-                    if (!existingInfocards.ContainsKey(cardId)) cardId = "aiimg1_tr_datapearl-err1";
-                    
-                }
                 if (existingInfocards.TryGetValue($"aiimg1_tr_{cardId}", out int idx)) {
                     trOracle.objectInfocard.currImg = idx;
                     unknownCard = false;
@@ -490,7 +485,7 @@ public class TROracleBehavior : SSOracleBehavior {
                     Vector2.ClampMagnitude(roomCenter - interestingShit.firstChunk.pos, 100f) / 100f *
                     (float)(0.4000000059604645 * (1.0 - room.gravity));
             }
-            trOracle.objectInfocard.pos = interestingShit.firstChunk.pos + new Vector2(90, -60);
+            trOracle.objectInfocard.pos = interestingShit.firstChunk.pos + new Vector2(85, -55);
             investigatePos = interestingShit.firstChunk.pos;
             trOracle.objectInfocard.alpha = 1f;
             if (stateProgress == 0 && stateTime > 100) {
@@ -501,9 +496,23 @@ public class TROracleBehavior : SSOracleBehavior {
                 if (interestingShit is DataPearl porl) {
                     room.game.GetStorySession.saveState.unrecognizedSaveStrings.Add("TR_DescribedPearl");
                     Plugin.Logger.LogDebug($"Initiating pearl dialogue for {porl.AbstractPearl.dataPearlType.value}");
-                    // TODO: pearl reading
-                    InitiateConvo(Conversation.DataPearlToConversation(porl.AbstractPearl.dataPearlType));
+                    // it didn't work
+                    // so i'm doing it the stupid way
+                    //CustomRegions.Collectables.CustomConvo
                     stateProgress = 2;
+                    movementBehavior = NewExtEnums.ReadPearl;
+                    string cardId = $"datapearl_{porl.AbstractPearl.dataPearlType.value.ToLower()}";
+                    Plugin.Logger.LogDebug($"Searching for pearl card {cardId}");
+                    if (existingInfocards.TryGetValue($"aiimg1_tr_{cardId}", out int idx)) {
+                        trOracle.objectInfocard.currImg = idx;
+                        unknownCard = false;
+                        Plugin.Logger.LogDebug($"Found {cardId}: {idx}");
+                    } else {
+                        trOracle.objectInfocard.currImg = existingInfocards["aiimg1_tr_datapearl-err1"];
+                        unknownPearlCard = true;
+                        Plugin.Logger.LogDebug($"No pearl card found: {cardId}");
+                    }
+                    InitiateConvo(Conversation.DataPearlToConversation(porl.AbstractPearl.dataPearlType));
                 } else {
                     Plugin.Logger.LogDebug("Finished dialogue");
                     interestingShit = null;
