@@ -496,9 +496,6 @@ public class TROracleBehavior : SSOracleBehavior {
                 if (interestingShit is DataPearl porl) {
                     room.game.GetStorySession.saveState.unrecognizedSaveStrings.Add("TR_DescribedPearl");
                     Plugin.Logger.LogDebug($"Initiating pearl dialogue for {porl.AbstractPearl.dataPearlType.value}");
-                    // it didn't work
-                    // so i'm doing it the stupid way
-                    //CustomRegions.Collectables.CustomConvo
                     stateProgress = 2;
                     movementBehavior = NewExtEnums.ReadPearl;
                     string cardId = $"datapearl_{porl.AbstractPearl.dataPearlType.value.ToLower()}";
