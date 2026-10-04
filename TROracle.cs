@@ -299,6 +299,7 @@ public class TROracleBehavior : SSOracleBehavior {
     public Dictionary<string, int> existingInfocards = [];
     private bool unknownCard;
     private bool unknownPearlCard;
+    public bool sillyMode => Options.sillyMode.Value || player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel;
     void FiniteStateMachine(Room room) {
         if ((state == TROracleState.Idle && movementBehavior == MovementBehavior.Idle) ||
             state == TROracleState.InspectObject) {
