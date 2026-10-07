@@ -532,7 +532,29 @@ public class TROracleBehavior : SSOracleBehavior {
         conversation = new PebblesConversation(this, convBehav, convoId, dialogBox);
         if (ModManager.MSC) conversation.colorMode = true;
     }
-    
+
+    public void MoveAroundTarget(Vector2 pos, float minDist, float maxDist, float changeChance = 0f) {
+        lookPoint = investigatePos;
+        investigateAngle = 180f;
+        bool newPos = Custom.Dist(investigatePos, nextPos) > maxDist || Custom.Dist(investigatePos, nextPos) < minDist;
+        if (oracle.room.aimap.getTerrainProximity(nextPos) < 2.0 || Random.value < changeChance || newPos) {
+            investigateAngle2 = Mathf.Lerp(-180f, 180f, Random.value);
+            invstAngSpeed = Mathf.Lerp(0.4f, 0.8f, Random.value) * (Random.value < 0.5 ? -1f : 1f);
+            newPos = true;
+        }
+        
+        if (!newPos) return;
+        Vector2 vector2 = investigatePos + Custom.DegToVec(investigateAngle2) * Random.Range(minDist, maxDist);
+        if (oracle.room.aimap.getTerrainProximity(vector2) >= 2.0) {
+            if (pathProgression > 0.9) {
+                if (Custom.DistLess(oracle.firstChunk.pos, vector2, 30f))
+                    floatyMovement = false;
+                else if (!Custom.DistLess(nextPos, vector2, 30f))
+                    SetNewDestination(vector2);
+            }
+            nextPos = vector2;
+        }
+    }
     private float investigateAngle2;
     public override void Update(bool eu) {
         if (cantFuckingWork) return;
@@ -556,74 +578,10 @@ public class TROracleBehavior : SSOracleBehavior {
             }
             else awareOfPlayerTime = 0;
             SetPalette(26, 23, Math.Min(1f, awareOfPlayerTime/20f));
-            if (movementBehavior == MovementBehavior.Investigate) {
-                if (player != null) {
-                    lookPoint = investigatePos;
-                    investigateAngle = 180f;
-                    bool newPos = false;
-                    if (investigateAngle2 < -90.0 || investigateAngle2 > 90.0 || oracle.room.aimap.getTerrainProximity(nextPos) < 2.0 || Random.value < 0.01) {
-                        investigateAngle2 = Mathf.Lerp(-70f, 70f, Random.value);
-                        invstAngSpeed = Mathf.Lerp(0.4f, 0.8f, Random.value) * (Random.value < 0.5 ? -1f : 1f);
-                        newPos = true;
-                    }
-
-                    if (Custom.Dist(investigatePos, oracle.bodyChunks[0].pos) >= 210f || Custom.Dist(investigatePos, oracle.bodyChunks[0].pos) < 100f || newPos) {
-                        Vector2 vector2 = investigatePos + Custom.DegToVec(investigateAngle2) * Random.Range(110f, 200f);
-                        if (oracle.room.aimap.getTerrainProximity(vector2) >= 2.0) {
-                            if (pathProgression > 0.9) {
-                                if (Custom.DistLess(oracle.firstChunk.pos, vector2, 30f))
-                                    floatyMovement = false;
-                                else if (!Custom.DistLess(nextPos, vector2, 30f))
-                                    SetNewDestination(vector2);
-                            }
-                            nextPos = vector2;
-                        }
-                    }
-                }
-            } else if (movementBehavior == MovementBehavior.KeepDistance) {
-                if (player != null) {
-                    lookPoint = investigatePos;
-                    investigateAngle = 180f;
-                    if (investigateAngle2 < -90.0 || investigateAngle2 > 90.0 || oracle.room.aimap.getTerrainProximity(nextPos) < 2.0) {
-                        investigateAngle2 = Mathf.Lerp(-70f, 70f, Random.value);
-                        invstAngSpeed = Mathf.Lerp(0.4f, 0.8f, Random.value) * (Random.value < 0.5 ? -1f : 1f);
-                    }
-
-                    if (Custom.Dist(investigatePos, oracle.bodyChunks[0].pos) < 400f) {
-                        Vector2 vector2 = investigatePos + Custom.DegToVec(investigateAngle2) * Random.Range(410f, 500f);
-                        if (oracle.room.aimap.getTerrainProximity(vector2) >= 2.0) {
-                            if (pathProgression > 0.9) {
-                                if (Custom.DistLess(oracle.firstChunk.pos, vector2, 30f))
-                                    floatyMovement = false;
-                                else if (!Custom.DistLess(nextPos, vector2, 30f))
-                                    SetNewDestination(vector2);
-                            }
-                            nextPos = vector2;
-                        }
-                    }
-                }
-            } else if (movementBehavior == MovementBehavior.Talk) {
-                if (player != null) {
-                    lookPoint = investigatePos;
-                    investigateAngle = 180f;
-                    if (investigateAngle2 < -90.0 || investigateAngle2 > 90.0 || oracle.room.aimap.getTerrainProximity(nextPos) < 2.0) {
-                        investigateAngle2 = Mathf.Lerp(-70f, 70f, Random.value);
-                        invstAngSpeed = Mathf.Lerp(0.4f, 0.8f, Random.value) * (Random.value < 0.5 ? -1f : 1f);
-                    }
-                    if (Custom.Dist(investigatePos, oracle.bodyChunks[0].pos) < 200f || Custom.Dist(investigatePos, oracle.bodyChunks[0].pos) > 310f) {
-                        Vector2 vector2 = investigatePos + Custom.DegToVec(investigateAngle2) * Random.Range(210f, 300f);
-                        if (oracle.room.aimap.getTerrainProximity(vector2) >= 2.0) {
-                            if (pathProgression > 0.9) {
-                                if (Custom.DistLess(oracle.firstChunk.pos, vector2, 30f))
-                                    floatyMovement = false;
-                                else if (!Custom.DistLess(nextPos, vector2, 30f))
-                                    SetNewDestination(vector2);
-                            }
-                            nextPos = vector2;
-                        }
-                    }
-                }
-            } else if (movementBehavior == NewExtEnums.ReadPearl) {
+            if (movementBehavior == MovementBehavior.Investigate) MoveAroundTarget(investigatePos, 100f, 200f, 0.05f);
+            else if (movementBehavior == MovementBehavior.KeepDistance) MoveAroundTarget(investigatePos, 400f, 600f);
+            else if (movementBehavior == MovementBehavior.Talk) MoveAroundTarget(investigatePos, 200f, 300f); 
+            else if (movementBehavior == NewExtEnums.ReadPearl) {
                 if (nextPos != roomCenter)
                     SetNewDestination(roomCenter);
             }
