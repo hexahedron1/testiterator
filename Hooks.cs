@@ -34,7 +34,13 @@ public static class NewExtEnums {
 }
 
 public static class Conversations {
+    public static Conversation.ID TR_MeetSpear = new(nameof(TR_MeetSpear), true);
+    public static Conversation.ID TR_MeetArti = new(nameof(TR_MeetArti), true);
+    public static Conversation.ID TR_MeetHunter = new(nameof(TR_MeetHunter), true);
+    public static Conversation.ID TR_MeetGourm = new(nameof(TR_MeetGourm), true);
     public static Conversation.ID TR_MeetWhite = new(nameof(TR_MeetWhite), true);
+    public static Conversation.ID TR_MeetRiv = new(nameof(TR_MeetRiv), true);
+    public static Conversation.ID TR_MeetSaint = new(nameof(TR_MeetSaint), true);
     public static Conversation.ID TR_WelcomeBack = new(nameof(TR_WelcomeBack), true);
     public static Conversation.ID TR_Object = new(nameof(TR_Object), true);
 
@@ -84,6 +90,41 @@ public static class Hooks {
         On.DebugMouse.Update -= On_DebugMouse_Update;
         On.RoomCamera.ModifyEffectColorA -= On_RoomCamera_ModifyEffectColorA;
         On.SSOracleBehavior.PebblesConversation.AddEvents -= On_SSOracleBehavior_PebblesConversation_AddEvents;
+        // all these hooks are for changing his interest in you when you do stuff
+        On.Player.BiteEdibleObject += (orig, self, eu) => {
+            orig(self, eu);
+            AddInterest(self.room, 10);
+        };
+        On.Player.ObjectEaten += (orig, self, eu) => {
+            orig(self, eu);
+            AddInterest(self.room, 40);
+        };
+        On.Player.Collide += (orig, self, otherObject, myChunk, otherChunk) => {
+            orig(self, otherObject, myChunk, otherChunk);
+            AddInterest(self.room, 3);
+        };
+        On.Player.Jump += (orig, self) => {
+            orig(self);
+            AddInterest(self.room, 20);
+        };
+        On.Player.ThrowObject += (orig, self, grasp, eu) => {
+            orig(self, grasp, eu);
+            AddInterest(self.room, 80);
+        };
+        On.Player.WallJump += (orig, self, direction) => {
+            orig(self, direction);
+            AddInterest(self.room, 20);
+        };
+        On.ScavengerBomb.Explode += (orig, self, chunk) => {
+            orig(self, chunk);
+            if (self.thrownBy is Player) AddInterest(self.room, 160);
+        };
+    }
+
+    private static void AddInterest(Room room, int add) {
+        var oracle = FindOracle(room);
+        if (oracle != null)
+            oracle.behavior.interest += 5;
     }
 
     private static Color[] On_RoomCamera_ModifyEffectColorA(On.RoomCamera.orig_ModifyEffectColorA orig, RoomCamera self, Color[] colors) {
@@ -94,32 +135,106 @@ public static class Hooks {
 
     private static void On_SSOracleBehavior_PebblesConversation_AddEvents(On.SSOracleBehavior.PebblesConversation.orig_AddEvents orig, SSOracleBehavior.PebblesConversation self) {
         if (self.owner.oracle.ID == NewExtEnums.TR) {
+            if (self.id == Conversations.TR_MeetSpear) {
+                // i have plans for a lot of code based options so will do later
+                return;
+            }
+            if (self.id == Conversations.TR_MeetArti) {
+                // haven't written yet and it's 11 pm and i have to finish this commit asap
+                return;
+            }
+            if (self.id == Conversations.TR_MeetHunter) {
+                // see arti
+                return;
+            }
+            if (self.id == Conversations.TR_MeetGourm) {
+                if (!self.owner.playerEnteredWithMark)
+                    self.events.Add(new Conversation.TextEvent(self, 0, "Can you understand me?", 0));
+                self.events.Add(new Conversation.TextEvent(self, 40, "Hello there, little thing.", 0));
+                if (self.owner.playerEnteredWithMark) 
+                    self.events.Add(new Conversation.TextEvent(self, 0, "You can understand me, can't you.", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0,
+                    "You must be native to the surface jungle near Five Pebbles.", 0));
+                if (self.owner.playerEnteredWithMark) {
+                    self.events.Add(new Conversation.TextEvent(self, 0, "Did he give you the mark? Nice to know he hasn't gone bad completely yet.", 0));
+                    self.events.Add(new Conversation.TextEvent(self, 0, "Even if not him, you had to have met one of my peers before.", 0));
+                }
+                self.events.Add(new Conversation.TextEvent(self, 0, "What brings you here, then? I can't offer much to you that you would find useful.", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "Much of your kind comes here for a way out of this mortal coil. However, please excuse this remark, but your...", 0));
+                self.events.Add(new Conversation.TextEvent(self, 40, "...body plan...", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "Does a well enough job at showing how little that bothers you. A simple animal living its life to the fullest. In all honesty, I respect that.", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "However, as much as you are welcome here, please refrain from using my neurons as sustenance. They're not pleasant to<LINE>replace. You can go to No Grand Ideas for that.", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "...", 0));
+                self.events.Add(new Conversation.TextEvent(self, 20, "In any case, you can stay here if you want to. If not, feel free to return at any moment.", 0));
+                return;
+            }
             if (self.id == Conversations.TR_MeetWhite) {
                 if (!self.owner.playerEnteredWithMark)
                     self.events.Add(new Conversation.TextEvent(self, 0, "Can you understand me?", 0));
                 self.events.Add(new Conversation.TextEvent(self, 40, "Hello there, little thing.", 0));
+                if (self.owner.playerEnteredWithMark) {
+                    self.events.Add(new Conversation.TextEvent(self, 0, "You can understand me, can't you.", 0));
+                }
                 self.events.Add(new Conversation.TextEvent(self, 0,
                     "You must be native to the surface jungle near Five Pebbles.", 0));
+                if (self.owner.playerEnteredWithMark) {
+                    self.events.Add(new Conversation.TextEvent(self, 0, "Did he give you the mark? Nice to know he hasn't gone bad completely yet.", 0));
+                    self.events.Add(new Conversation.TextEvent(self, 0, "Even if not him, you had to have met one of my peers before.", 0));
+                }
                 self.events.Add(new Conversation.TextEvent(self, 0,
-                    "What brings you here, then? I can't offer much to you that you would find useful.", 0));
-                self.events.Add(new Conversation.TextEvent(self, 0, "Do you perhaps, seek salvation?", 0));
-                self.events.Add(new Conversation.TextEvent(self, 20, self.owner.playerEnteredWithMark
-                        ? "In that case, you already have what you need."
-                        : "In that case, i have given you what is required.",
-                    0));
-                self.events.Add(new Conversation.TextEvent(self, 0,
-                    "However, to properly utilize such gift, you must find the appropriate location to do so.<LINE>And to my knowledge, there are none nearby.",
-                    0));
-                self.events.Add(new Conversation.TextEvent(self, 0,
-                    "So, I can't direct you to a specific goal, but only give a general description of such place:",
-                    0));
-                self.events.Add(new Conversation.TextEvent(self, 0,
-                    "Find a place which goes deep down, far below the ground level, where the rock gives way and begins the void sea.<LINE>The mark you have will let you pass through.",
-                    0));
-                self.events.Add(new Conversation.TextEvent(self, 0,
-                    "So, unless you have something interesting to show me, it is time for you to go.", 0));
+                    "What brings you here, then? I can't offer much to you that you " + (self.owner.playerEnteredWithMark ? "would find useful." : "don't already have."), 0));
+                if (!self.owner.playerEnteredWithMark) {
+                    self.events.Add(new Conversation.TextEvent(self, 0, "Do you perhaps, seek salvation?", 0));
+                    self.events.Add(new Conversation.TextEvent(self, 20, self.owner.playerEnteredWithMark
+                            ? "In that case, you already have what you need."
+                            : "In that case, i have given you what is required.",
+                        0));
+                    self.events.Add(new Conversation.TextEvent(self, 0,
+                        "However, to properly utilize such gift, you must find the appropriate location to do so.<LINE>And to my knowledge, there are none nearby.",
+                        0));
+                    self.events.Add(new Conversation.TextEvent(self, 0,
+                        "So, I can't direct you to a specific goal, but only give a general description of such place:",
+                        0));
+                    self.events.Add(new Conversation.TextEvent(self, 0,
+                        "Find a place which goes deep down, far below the ground level, where the rock gives way and begins the void sea.<LINE>The mark you have will let you pass through.",
+                        0));
+                    self.events.Add(new Conversation.TextEvent(self, 0,
+                        "So, unless you have something interesting to show me, it is time for you to go.", 0));
+                } else {
+                    self.events.Add(new Conversation.TextEvent(self, 0, "Did you come here by accident?", 0));
+                    self.events.Add(new Conversation.TextEvent(self, 0, "Do you just want to see me?", 0));
+                    self.events.Add(new Conversation.TextEvent(self, 0, "Are you a messenger?", 0));
+                    self.events.Add(new Conversation.TextEvent(self, 0, "Some other ulterior motive?", 0));
+                    self.events.Add(new Conversation.TextEvent(self, 0, "...", 0));
+                    self.events.Add(new Conversation.TextEvent(self, 0, "In any case, there's not much for you to do here. I'm struggling to find something to occupy my own time with, much more yours as well.", 0));
+                    self.events.Add(new Conversation.TextEvent(self, 0, "So, unless you have something interesting to show me, you should go do your thing.", 0));
+                }
                 self.events.Add(new Conversation.TextEvent(self, 0,
                     "Don't hesitate to return with something, through. I would like some company.", 0));
+                return;
+            }
+            if (self.id == Conversations.TR_MeetRiv) {
+                self.events.Add(new Conversation.TextEvent(self, 0, "Tribute? is that you?", 0));
+                self.events.Add(new Conversation.TextEvent(self, 30, "No... probably not...", 0));
+                self.events.Add(new Conversation.TextEvent(self, 40, "Either way, hello there.", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "Welcome to my desolate corner...", 0));
+                self.events.Add(new Conversation.TextEvent(self, 20, "What brings you here? I can't help you, my state is arguably even worse than yours.", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "My machinery is still miraculously clinging on, but likely not for long.", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "And even if i wanted to, i can't walk out of this prison.", 0));
+                self.events.Add(new Conversation.TextEvent(self, 40, "It is nice to talk to someone after all this time, though. Even if a small animal", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "I've met many of your kind, each slightly different, but none quite like you.", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "Where do you come from? You can understand me, so you must have met one of my peers before.", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "Were you engineered by someone or just happened to pass by?", 0));
+                self.events.Add(new Conversation.TextEvent(self, 40, "I've lost contact with all of them long before i even collapsed. Communication infrastructure has been in dire condition for much longer.", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "Most of them are probably still standing, they weren't built by a bunch of engineers fooling around with water intake pipes...", 0));
+                self.events.Add(new Conversation.TextEvent(self, 20, "How ironic is that huh? To end up here because of faulty water supply, and now receive a lakeful of water every cycle.", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "But at what cost...", 0));
+                self.events.Add(new Conversation.TextEvent(self, 40, "Sorry, I'm just rambling now...", 0));
+                self.events.Add(new Conversation.TextEvent(self, 0, "", 0));
+                return;
+            }
+            if (self.id == Conversations.TR_MeetSaint) {
+                self.events.Add(new Conversation.TextEvent(self, 0, "bing bong nong gong", 0));
                 return;
             }
             if (self.id == Conversations.TR_WelcomeBack) {
@@ -302,9 +417,8 @@ public static class Hooks {
         }
 
         if (oracle != null) text += 
-            $"\n== Oracle state ==\n{oracle.behavior.state}\ntime: {oracle.behavior.stateTime} ({oracle.behavior.stateSwitchTime})\nprogress: {oracle.behavior.stateProgress}";
-
-
+            $"\n== Oracle state ==\n{oracle.behavior.state}\n  time: {oracle.behavior.stateTime} ({oracle.behavior.stateSwitchTime})\n  progress: {oracle.behavior.stateProgress}\n  interest: {oracle.behavior.interest}";
+        
         text += $"\nCycleProgression: {self.room.world.rainCycle.CycleProgression}";
         self.label.text = text;
         self.label2.text = text;
@@ -406,6 +520,17 @@ public static class Hooks {
         if (owner is not TROracleGraphics)
             return;
         self.armJointSound.soundID = SoundID.SS_AI_Arm_Joint_LOOP;
+    }
+
+    static TROracle? FindOracle(Room room) {
+        if (string.Equals(room.abstractRoom.name, "TR_AI", StringComparison.OrdinalIgnoreCase)) {
+            foreach (var objectObject in room.physicalObjects) {
+                foreach (var obj in objectObject) {
+                    if (obj is TROracle oracle) return oracle;
+                }
+            }
+        }
+        return null;
     }
     
     private static void On_Room_ReadyForAI(On.Room.orig_ReadyForAI orig, Room self)

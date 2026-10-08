@@ -32,12 +32,12 @@ public class TROracle : Oracle {
             where x.Split('\\').Last().StartsWith("aiimg1_tr") 
                   && !x.Split('\\').Last().EndsWith("aseprite")
             select x.Split('\\').Last().Split('.')[0]).ToList();
-        // it's *technically* possible to witness it switching but you'd need to sit in his chamber for slightly more than 68 years
         Plugin.Logger.LogDebug("Existing infocards:");
         for (int i = 0; i < infocards.Count; i++) {
             behavior.existingInfocards.Add(infocards[i], i);
             Plugin.Logger.LogDebug(infocards[i]);
         }
+        // it's *technically* possible to witness it switching but you'd need to sit in his chamber for slightly more than 68 years
         objectInfocard = myScreen.AddImage(infocards, int.MaxValue);
         objectInfocard.alpha = 0f;
     }
@@ -101,7 +101,7 @@ public class TROracleBehavior : SSOracleBehavior {
         public static readonly TROracleState FirstEncounter_Red = new("FirstEncounter_Red", true);
         public static readonly TROracleState FirstEncounter_Gourm = new("FirstEncounter_Gourm", true);
         public static readonly TROracleState FirstEncounter_White = new("FirstEncounter_White", true);
-        public static readonly TROracleState FirstEncounter_Yellow = new("FirstEncounter_Yellow", true);
+        // Monk gets no unique encounter 🤸
         public static readonly TROracleState FirstEncounter_Riv = new("FirstEncounter_Riv", true);
         public static readonly TROracleState FirstEncounter_Saint = new("FirstEncounter_Saint", true);
         public static readonly TROracleState FirstEncounter_Unknown = new("FirstEncounter_Unknown", true);
@@ -199,10 +199,8 @@ public class TROracleBehavior : SSOracleBehavior {
             return TROracleState.FirstEncounter_Red;
         if (player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Gourmand)
             return TROracleState.FirstEncounter_Gourm;
-        if (player.SlugCatClass == SlugcatStats.Name.White)
+        if (player.SlugCatClass == SlugcatStats.Name.White || player.SlugCatClass == SlugcatStats.Name.Yellow)
             return TROracleState.FirstEncounter_White;
-        if (player.SlugCatClass == SlugcatStats.Name.Yellow)
-            return TROracleState.FirstEncounter_Yellow;
         if (player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Rivulet)
             return TROracleState.FirstEncounter_Riv;
         if (player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Saint)
@@ -227,6 +225,7 @@ public class TROracleBehavior : SSOracleBehavior {
             oracle.room.gravity = 0.8f;
             oracle.room.PlaySound(SoundID.Broken_Anti_Gravity_Switch_Off);
             LockShortcuts();
+            playerEnteredWithMark = ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.theMark;
             TurnOffSSMusic(true);
         }
 
@@ -236,6 +235,8 @@ public class TROracleBehavior : SSOracleBehavior {
                 SwitchState(TROracleState.Idle);
                 return;
             }
+
+            interest += 120;
             InitiateConvo(Conversations.TR_WelcomeBack);
             TurnOffSSMusic(false);
         }
@@ -300,6 +301,8 @@ public class TROracleBehavior : SSOracleBehavior {
     private bool unknownCard;
     private bool unknownPearlCard;
     public bool sillyMode => Options.sillyMode.Value || player.SlugCatClass == MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel;
+    public int interest;
+    public bool interested;
     void FiniteStateMachine(Room room) {
         if ((state == TROracleState.Idle && movementBehavior == MovementBehavior.Idle) ||
             state == TROracleState.InspectObject) {
@@ -319,48 +322,64 @@ public class TROracleBehavior : SSOracleBehavior {
         }
         if (state == TROracleState.Idle) {
             if (movementBehavior == MovementBehavior.Idle) {
-                invstAngSpeed = 1f;
-                if (investigateMarble == null && oracle.marbles.Count > 0) {
-                    if (idleProgress > (room.world.rainCycle.AmountLeft > 0 ? 2400 : 120) && Random.Range(0, room.world.rainCycle.AmountLeft > 0 ? 150 : 10) == 0) {
-                        movementBehavior = MovementBehavior.Meditate;
-                        idleProgress = 0;
-                    }
-                    var selectable = (from x in oracle.marbles where x.orbitObj == null select x).ToArray();
-                    investigateMarble = selectable[Random.Range(0, selectable.Length)];
-                    //Bang(investigateMarble.firstChunk);
-                    SetLabel(GlyphLabel.RandomString(1, 10, investigateMarble.marbleIndex, false));
-                    if (debug) Plugin.Logger.LogDebug("Picked new pearl to look at: " + investigateMarble.abstractPhysicalObject.ID);
-                    investigateAngle =
-                        Custom.VecToDeg(investigateMarble.firstChunk.pos -
-                                        oracle.firstChunk.pos); //Random.value * 360f;
-                    SetNewDestination(investigateMarble.firstChunk.pos - Custom.DegToVec(investigateAngle) * 100f);
-                }
+                if (interested) {
+                    investigatePos = player.DangerPos;
+                    // random bullshit GO!
+                    MoveAroundTarget(investigatePos, 50f + 1000f/(interest+10f), 100f+10000f/(interest+200f/3), 0.02f);
+                    interest -= 1;
+                    if (interest <= 0) interested = false;
+                } else {
+                    invstAngSpeed = 1f;
+                    if (investigateMarble == null && oracle.marbles.Count > 0) {
+                        if (idleProgress > (room.world.rainCycle.AmountLeft > 0 ? 2400 : 120) &&
+                            Random.Range(0, room.world.rainCycle.AmountLeft > 0 ? 150 : 10) == 0) {
+                            movementBehavior = MovementBehavior.Meditate;
+                            idleProgress = 0;
+                        }
 
-                if (player != null && player.room == oracle.room && player.DangerPos.y < 640f && !awareOfPlayer) {
-                    SwitchState(TROracleState.Welcome);
-                    return;
-                }
-                if (player != null && player.room != oracle.room)
-                    awareOfPlayer = false;
-                if (investigateMarble != null) {
-                    lookPoint = investigateMarble.firstChunk.pos;
-                    floatyMovement = true;
-                    if (Mathf.Approximately(pathProgression, 1f) && Random.value < 0.05) investigateMarble = null;
-                }
-
-                if (shitToLookAt.Count > 0) {
-                    SwitchState(TROracleState.InspectObject);
-                    return;
-                }
-                if (debug) {
-                    debugLabel_currentGetTo.pos = currentGetTo;
-                    debugLabel_lastPos.pos = lastPos;
-                    debugLabel_nextPos.pos = nextPos;
-                    //testLabel.pos = oracle.firstChunk.pos + new Vector2(100f, 100f);
-                    if (tikk % 5 == 0 && testLabel.visibleGlyphs < testLabel.glyphs.Length) {
-                        testLabel.visibleGlyphs++;
-                        oracle.room.PlaySound(SoundID.SS_AI_Text);
+                        var selectable = (from x in oracle.marbles where x.orbitObj == null select x).ToArray();
+                        investigateMarble = selectable[Random.Range(0, selectable.Length)];
+                        //Bang(investigateMarble.firstChunk);
+                        SetLabel(GlyphLabel.RandomString(1, 10, investigateMarble.marbleIndex, false));
+                        if (debug)
+                            Plugin.Logger.LogDebug("Picked new pearl to look at: " +
+                                                   investigateMarble.abstractPhysicalObject.ID);
+                        investigateAngle =
+                            Custom.VecToDeg(investigateMarble.firstChunk.pos -
+                                            oracle.firstChunk.pos); //Random.value * 360f;
+                        SetNewDestination(investigateMarble.firstChunk.pos - Custom.DegToVec(investigateAngle) * 100f);
                     }
+
+                    if (player != null && player.room == oracle.room && player.DangerPos.y < 640f && !awareOfPlayer) {
+                        SwitchState(TROracleState.Welcome);
+                        return;
+                    }
+
+                    if (player != null && player.room != oracle.room)
+                        awareOfPlayer = false;
+                    if (investigateMarble != null) {
+                        lookPoint = investigateMarble.firstChunk.pos;
+                        floatyMovement = true;
+                        if (Mathf.Approximately(pathProgression, 1f) && Random.value < 0.05) investigateMarble = null;
+                    }
+
+                    if (shitToLookAt.Count > 0) {
+                        SwitchState(TROracleState.InspectObject);
+                        return;
+                    }
+
+                    if (debug) {
+                        debugLabel_currentGetTo.pos = currentGetTo;
+                        debugLabel_lastPos.pos = lastPos;
+                        debugLabel_nextPos.pos = nextPos;
+                        //testLabel.pos = oracle.firstChunk.pos + new Vector2(100f, 100f);
+                        if (tikk % 5 == 0 && testLabel.visibleGlyphs < testLabel.glyphs.Length) {
+                            testLabel.visibleGlyphs++;
+                            oracle.room.PlaySound(SoundID.SS_AI_Text);
+                        }
+                    }
+
+                    if (interest > 80) interested = true;
                 }
             } else if (movementBehavior == MovementBehavior.Meditate) {
                 lookPoint = oracle.bodyChunks[0].pos;
@@ -409,36 +428,55 @@ public class TROracleBehavior : SSOracleBehavior {
                     stateProgress = 1;
                 }
             } else if (stateProgress == 1) {
-                movementBehavior = MovementBehavior.KeepDistance;
-                if (stateTime > 800) {
-                    if (stateTime == 830) {
-                        room.PlaySound(SoundID.SS_AI_Give_The_Mark_Telekenisis, 0.0f, 1f, 1f);
+                if (!playerEnteredWithMark) {
+                    movementBehavior = MovementBehavior.KeepDistance;
+                    if (stateTime > 800) {
+                        if (stateTime == 830) {
+                            room.PlaySound(SoundID.SS_AI_Give_The_Mark_Telekenisis, 0.0f, 1f, 1f);
+                        }
+
+                        if (stateTime is > 830 and < 1100) {
+                            Vector2 vector2 =
+                                Vector2.ClampMagnitude(oracle.room.MiddleOfTile(24, 14) - player.mainBodyChunk.pos,
+                                    40f) / 40f * (2.8f * Mathf.InverseLerp(30f, 160f, stateTime - 800));
+                            player.mainBodyChunk.vel += vector2;
+                        }
+
+                        if (stateTime < 1100) {
+                            player.Stun(20);
+                        }
+
+                        if (stateTime == 1100) {
+                            player.mainBodyChunk.vel += Custom.RNV() * 10f;
+                            player.bodyChunks[1].vel += Custom.RNV() * 10f;
+                            ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.karmaCap = 9;
+                            Bang(player.mainBodyChunk);
+                            oracle.room.PlaySound(SoundID.SS_AI_Give_The_Mark_Boom, 0.0f, 1f, 1f);
+                            ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.karma =
+                                ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.karmaCap;
+                            ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.theMark =
+                                true;
+                            player.AddFood(player.MaxFoodInStomach - player.FoodInStomach);
+                        }
+
+                        if (stateTime > 1100) {
+                            ((PlayerGraphics)player.graphicsModule).markAlpha = Mathf.Max(
+                                ((PlayerGraphics)player.graphicsModule).markAlpha,
+                                Mathf.InverseLerp(500f, 300f, stateTime - 800));
+                        }
+
+                        if (stateTime == 1200) {
+                            stateProgress = 2;
+                            movementBehavior = MovementBehavior.Talk;
+                            InitiateConvo(Conversations.TR_MeetWhite);
+                            interest = 250;
+                        }
                     }
-                    if (stateTime is > 830 and < 1100) {
-                        Vector2 vector2 = Vector2.ClampMagnitude(oracle.room.MiddleOfTile(24, 14) - player.mainBodyChunk.pos, 40f) / 40f * (2.8f * Mathf.InverseLerp(30f, 160f, stateTime-800));
-                        player.mainBodyChunk.vel += vector2;
-                    }
-                    if (stateTime < 1100) {
-                        player.Stun(20);    
-                    }
-                    if (stateTime == 1100) {
-                        player.mainBodyChunk.vel += Custom.RNV() * 10f;
-                        player.bodyChunks[1].vel += Custom.RNV() * 10f;
-                        ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.karmaCap = 9;
-                        Bang(player.mainBodyChunk);
-                        oracle.room.PlaySound(SoundID.SS_AI_Give_The_Mark_Boom, 0.0f, 1f, 1f);
-                        ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.karma = ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.karmaCap;
-                        ((StoryGameSession)oracle.room.game.session).saveState.deathPersistentSaveData.theMark = true;
-                        player.AddFood(player.MaxFoodInStomach - player.FoodInStomach);
-                    }
-                    if (stateTime > 1100) {
-                        ((PlayerGraphics)player.graphicsModule).markAlpha = Mathf.Max(((PlayerGraphics)player.graphicsModule).markAlpha, Mathf.InverseLerp(500f, 300f, stateTime-800));
-                    }
-                    if (stateTime == 1200) {
-                        stateProgress = 2;
-                        movementBehavior = MovementBehavior.Talk;
-                        InitiateConvo(Conversations.TR_MeetWhite);
-                    }
+                } else if (stateTime == 800) {
+                    stateProgress = 2;
+                    movementBehavior = MovementBehavior.Talk;
+                    InitiateConvo(Conversations.TR_MeetWhite);
+                    interest = 400;
                 }
             } else if (stateProgress == 2 && conversation.slatedForDeletion) {
                 SwitchState(TROracleState.Idle);
